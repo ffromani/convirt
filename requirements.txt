@@ -1,0 +1,2 @@
+libvirt-python
+pytest>=2.3.5

@@ -1,0 +1,7 @@
+.cache
+.coverage
+.tox
+convirt/*.pyc
+convirt/__pycache__
+tests/*.pyc
+tests/__pycache__

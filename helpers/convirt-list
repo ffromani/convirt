@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /bin/systemctl list-units --no-pager --no-legend 'convirt*'

@@ -1,0 +1,21 @@
+Metadata-Version: 1.1
+Name: convirt
+Version: 0.0.1
+Summary: Run containers with the libvirt API
+Home-page: TODO
+Author: Francesco Romani
+Author-email: fromani@redhat.com
+License: GPL/MIT
+Description:
+	TODO
+        
+Platform: posix
+Classifier: Development Status :: 3 - Alpha
+Intended Audience :: Developers
+Classifier: Operating System :: POSIX
+License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)
+Programming Language :: Python
+Programming Language :: Python :: 2
+Programming Language :: Python :: 3 
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: Software Development :: Libraries :: Python Modules

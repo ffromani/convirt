@@ -1,0 +1,4 @@
+#!/bin/sh
+/bin/systemd-cgtop -b -n 1 | /bin/grep 'convirt-'
+# output:
+# (CG)Path	Tasks	%CPU	Memory	Input/s	Output/s
