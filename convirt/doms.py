@@ -51,3 +51,9 @@ def add(dom):
 def remove(guid):
     with _lock:
         del _doms[guid]
+
+
+# use only for testing
+def clear():
+    with _lock:
+        _doms.clear()
