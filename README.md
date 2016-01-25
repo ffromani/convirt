@@ -6,10 +6,12 @@ you to run containers using [runc](http://runc.io/).
 conVirt is implemented in pure python and plugs into python libvirt bindings, so your
 python program which already uses libvirt can use conVirt with minimal or no changes.
 
+
 License
 -------
-(C) Francesco Romani <fromani at redhat dot com>
+(C) 2015-206 Red Hat Inc.
 Released under the terms of the GNU Lesser General Public License v2 or later (LGPLv2+).
+
 
 Dependencies
 ------------
