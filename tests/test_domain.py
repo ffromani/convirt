@@ -73,3 +73,12 @@ class DomainXMLTests(unittest.TestCase):
                                      _TEST_DOM_XML)
         self.assertEqual(dom.XMLDesc(libvirt.VIR_DOMAIN_XML_UPDATE_CPU),
                                      _TEST_DOM_XML)
+
+
+class UnsupportedAPITests(unittest.TestCase):
+
+    def test_migrate(self):
+        dom = convirt.domain.Domain(_MINIMAL_DOM_XML)
+        self.assertRaises(libvirt.libvirtError,
+                          dom.migrate,
+                          {})
