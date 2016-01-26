@@ -38,9 +38,9 @@ def get_all():
         return list(_doms.values())  # py3 compat
 
 
-def get_by_uuid(guid):
+def get_by_uuid(vm_uuid):
     with _lock:
-        return _doms[str(guid)]
+        return _doms[str(vm_uuid)]
 
 
 def add(dom):
@@ -48,9 +48,9 @@ def add(dom):
         _doms[dom.UUIDString()] = dom
 
 
-def remove(guid):
+def remove(vm_uuid):
     with _lock:
-        del _doms[guid]
+        del _doms[vm_uuid]
 
 
 # use only for testing

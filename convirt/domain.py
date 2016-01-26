@@ -36,7 +36,7 @@ class Domain(object):
     def __init__(self, xmldesc):
         self._xmldesc = xmldesc
         self._root = ET.fromstring(xmldesc)
-        self._guid = uuid.UUID(self._root.find('./uuid').text)
+        self._vm_uuid = uuid.UUID(self._root.find('./uuid').text)
         doms.add(self)  # TODO racy. But it is a problem for us?
 
     def destroy(self):
@@ -46,10 +46,10 @@ class Domain(object):
 #        pass
 
     def ID(self):
-        return self._guid.int
+        return self._vm_uuid.int
 
     def UUIDString(self):
-        return str(self._guid)
+        return str(self._vm_uuid)
 
     def XMLDesc(self, flags):
         # TODO: raise warning to signal we ignore flags?
