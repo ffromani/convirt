@@ -64,9 +64,8 @@ class Domain(object):
 #        pass
 
     def __getattr__(self, name):
-        if callable(getattr(libvirt.virDomain, name)):
-            return self._fake_method
-        errors.throw()
+        # virDomain does not expose non-callable attributes.
+        return self._fake_method
     
     def _fake_method(self, *args):
         errors.throw()
