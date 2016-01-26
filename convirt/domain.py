@@ -52,6 +52,7 @@ class Domain(object):
         return str(self._guid)
 
     def XMLDesc(self, flags):
+        # TODO: raise warning to signal we ignore flags?
         return self._xmldesc
 
 #    def blockInfo(self, path, flags):
