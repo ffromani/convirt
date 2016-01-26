@@ -26,6 +26,7 @@ import libvirt
 
 import convirt
 import convirt.domain
+import convirt.doms
 
 
 class DomainIdsTests(unittest.TestCase):
@@ -82,3 +83,20 @@ class UnsupportedAPITests(unittest.TestCase):
         self.assertRaises(libvirt.libvirtError,
                           dom.migrate,
                           {})
+
+
+class RegistrationTests(unittest.TestCase):
+
+    def test_destroy_registered(self):
+        dom = convirt.domain.Domain.create(_MINIMAL_DOM_XML)
+        existing_doms = convirt.doms.get_all()
+        self.assertEquals(len(existing_doms), 1)
+        self.assertEquals(dom.ID, existing_doms[0].ID)
+        dom.destroy()
+        self.assertEquals(convirt.doms.get_all(), [])
+
+    def test_destroy_unregistered(self):
+        dom = convirt.domain.Domain(_MINIMAL_DOM_XML)
+        self.assertEquals(convirt.doms.get_all(), [])
+        self.assertRaises(libvirt.libvirtError,
+                          dom.destroy)

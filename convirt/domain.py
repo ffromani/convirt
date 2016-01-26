@@ -33,14 +33,23 @@ class Domain(object):
 
     _log = logging.getLogger('convirt.Domain')
 
+    @classmethod
+    def create(cls, xmldesc):
+        inst = cls(xmldesc)
+        doms.add(inst)
+        return inst
+
     def __init__(self, xmldesc):
         self._xmldesc = xmldesc
         self._root = ET.fromstring(xmldesc)
         self._vm_uuid = uuid.UUID(self._root.find('./uuid').text)
-        doms.add(self)  # TODO racy. But it is a problem for us?
 
     def destroy(self):
-        doms.remove(self.UUIDString())
+        vm_uuid = self.UUIDString()
+        try:
+            doms.remove(vm_uuid)
+        except KeyError:
+            errors.throw()  # FIXME: specific error
 
 #    def reset(self, flags):
 #        pass
