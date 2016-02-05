@@ -26,6 +26,7 @@ import unittest
 import convirt
 import convirt.command
 
+from . import monkey
 from . import testlib
 
 
@@ -53,8 +54,6 @@ class PathTests(testlib.TestCase):
                           cp.cmd)
 
     def test_missing_path(self):
-        saved_env = os.environ
-        os.environ = {}
-        cp = convirt.command.Path('sh')
-        self.assertRaises(convirt.command.NotFound, cp.cmd)
-        os.environ = saved_env
+        with monkey.patch_scope([(os, 'environ', {})]):
+            cp = convirt.command.Path('sh')
+            self.assertRaises(convirt.command.NotFound, cp.cmd)
