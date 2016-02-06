@@ -194,6 +194,35 @@ class RuntimeBaseFacilitiesTests(testlib.TestCase):
                     self.assertIn(vm_uuid, stat.path)
 
 
+class CGStatTests(testlib.TestCase):
+
+    def test_create(self):
+        for line in _SD_CGTOP_CONTS.values():
+            self.assertNotRaises(
+                convirt.runtime.CGStat.from_cgtop_line, line)
+
+    def test_uuid(self):
+        for vm_uuid, line in _SD_CGTOP_CONTS.items():
+            stat = convirt.runtime.CGStat.from_cgtop_line(line)
+            self.assertEqual(stat.uuid, vm_uuid)
+
+    def test_replace_to_zero(self):
+        for vm_uuid, line in _SD_CGTOP_CONTS.items():
+            stat = convirt.runtime.CGStat.from_cgtop_line(line)
+            for attr in ('cpu_percentage', 'memory',
+                         'input_per_sec', 'output_per_sec'):
+                self.assertEqual(getattr(stat, attr), 0)
+
+    def test_bad_value(self):
+        self.assertRaises(
+            ValueError,
+            convirt.runtime.CGStat.from_cgtop_line,
+"""
+/system.slice/convirt-823b2654-3e9c-4e6f-834d-31c492b9ae92.service    1     $        -        -        -
+"""
+        )
+
+
 def _fake_check_output_sd_cgtop_sys(cmd):
     return _SD_CGTOP_SYS
 

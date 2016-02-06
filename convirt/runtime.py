@@ -18,7 +18,6 @@
 # Refer to the README and COPYING files for full details of the license
 #
 
-import collections
 import os.path
 import subprocess
 
@@ -41,9 +40,31 @@ class OperationFailed(Exception):
     TODO
     """
 
-CGStat = collections.namedtuple('CGStat',
-                                ['path', 'tasks', 'cpu_percentage',
-                                 'memory', 'input_per_sec', 'output_per_sec'])
+
+class CGStat(object):
+
+    __slots__ = (
+        'path', 'tasks', 'cpu_percentage', 'memory', 'input_per_sec',
+        'output_per_sec',
+    )
+
+    @classmethod
+    def from_cgtop_line(cls, line):
+        items = line.split()
+        return cls(**dict(zip(cls.__slots__, items)))
+
+    def __init__(self, **kwargs):
+        for attr, value in kwargs.items():
+            if attr == 'path':  # TODO
+                setattr(self, attr, value)
+            else:
+                setattr(self, attr,
+                        _cgtop_value_to_int(value))
+
+    @property
+    def uuid(self):
+        _, unit = os.path.split(self.path)
+        return _vm_uuid_from_unit(unit)
 
 
 def get_all():
@@ -118,10 +139,17 @@ class Base(object):
             raise OperationFailed()
 
 
+def _vm_uuid_from_unit(unit):
+    name, ext = os.path.splitext(unit)
+    if ext != _SERVICE_EXT:  # TODO: check this
+        raise ValueError(unit)
+    return name.replace(_PREFIX, '', 1)
+
+
 def _parse_systemd_cgtop(output):
     for line in output.splitlines():
         if _PREFIX in line:
-            yield CGStat(*line.split())
+            yield CGStat.from_cgtop_line(line)
 
 
 def _parse_systemctl_list_units(output):
@@ -129,7 +157,17 @@ def _parse_systemctl_list_units(output):
         if not line:
             continue
         unit = line.split()[0]
-        name, ext = os.path.splitext(unit)
-        if ext != _SERVICE_EXT:  # TODO: check this
-            continue
-        yield name.replace(_PREFIX, '', 1)
+        try:
+            yield _vm_uuid_from_unit(unit)
+        except ValueError:
+            pass
+
+
+def _cgtop_value_to_int(value):
+    try:
+        return int(value)
+    except ValueError:
+        if value == '-':
+            return 0
+        else:
+            raise
