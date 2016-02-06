@@ -27,6 +27,7 @@ class ConfigTests(testlib.TestCase):
 
     def test_update(self):
         conf = convirt.config.Environment(
-            uid=42, gid=42, tools_dir='/usr/local/libexec/convirt/test')
+            uid=42, gid=42, tools_dir='/usr/local/libexec/convirt/test',
+            use_sudo=False)
         self.assertNotRaises(convirt.config.setup, conf)
         self.assertEquals(convirt.config.current(), conf)
