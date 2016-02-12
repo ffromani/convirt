@@ -22,7 +22,8 @@ import collections
 
 
 Environment = collections.namedtuple('Environment',
-                                     ['uid', 'gid', 'tools_dir', 'use_sudo'])
+                                     ['uid', 'gid', 'tools_dir', 'use_sudo',
+                                     'cgroup_slice'])
 
 
 _ENV = Environment(
@@ -30,6 +31,7 @@ _ENV = Environment(
     gid=36,
     tools_dir='/usr/libexec/convirt',
     use_sudo=True,
+    cgroup_slice='convirt',  # XXX: or 'machine' ?
 )
 
 

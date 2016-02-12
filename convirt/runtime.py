@@ -114,6 +114,7 @@ class Base(object):
         cmd = [
             _SYSTEMD_RUN.cmd(),
             '--unit="%s"' % self._unit_name(),
+            '--slice=%s' % self._conf.cgroup_slice,
             '--property=CPUAccounting=1',
             '--property=MemoryAccounting=1',
             '--property=BlockIOAccounting=1',
