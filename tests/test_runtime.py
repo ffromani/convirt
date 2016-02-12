@@ -126,24 +126,33 @@ class RuntimeBaseAvailableTests(testlib.TestCase):
 class RuntimeBaseAPITests(testlib.TestCase):
 
     def setUp(self):
-        self.base = convirt.runtime.Base(str(uuid.uuid4()), '/tmp')
+        self.base = convirt.runtime.Base(str(uuid.uuid4()))
 
     def test_configure(self):
         self.assertRaises(NotImplementedError, self.base.configure, '')
 
     def test_start(self):
-        self.assertRaises(NotImplementedError, self.base.start)
+        self.assertRaises(NotImplementedError, self.base.start, '')
+
+    def test_stop(self):
+        self.assertRaises(NotImplementedError, self.base.stop)
+
+    def test_status(self):
+        self.assertRaises(NotImplementedError, self.base.status)
+
+    def test_runtime_name(self):
+        self.assertRaises(NotImplementedError, self.base.runtime_name)
 
 
-class RuntimeBaseFacilitiesTests(testlib.TestCase):
+class RunnerTests(testlib.TestCase):
 
     def setUp(self):
-        self.vm_uuid = str(uuid.uuid4())
-        self.base = convirt.runtime.Base(self.vm_uuid, '/tmp')
+        self.unit_name = 'test'
+        self.runner = convirt.runtime.Runner(self.unit_name)
 
     def test_run(self):
 
-        def _fake_exec(cmd):
+        def _fake_call(cmd):
             # at least:
             # 1. systemd-run
             # 2. --unit
@@ -151,17 +160,17 @@ class RuntimeBaseFacilitiesTests(testlib.TestCase):
             self.assertGreaterEqual(len(cmd), 3)
             self.assertIn('systemd-run', cmd[0])
             unit_found = any(
-                c.startswith('--unit') and self.vm_uuid in c
+                c.startswith('--unit') and self.unit_name in c
                 for c in cmd
             )
             self.assertTrue(unit_found)
 
-        with monkey.patch_scope([(self.base, '_exec', _fake_exec)]):
-            self.base.run(['/bin/sleep', '42m'])
+        with monkey.patch_scope([(self.runner, 'call', _fake_call)]):
+            self.runner.start(['/bin/sleep', '42m'])
 
     def test_stop(self):
 
-        def _fake_exec(cmd):
+        def _fake_call(cmd):
             # exactly:
             # 1. systemdctl
             # 2. stop
@@ -169,25 +178,25 @@ class RuntimeBaseFacilitiesTests(testlib.TestCase):
             self.assertEqual(len(cmd), 3)
             self.assertIn('systemctl', cmd[0])
             self.assertEqual('stop', cmd[1])
-            self.assertIn(self.vm_uuid, cmd[2])
+            self.assertIn(self.unit_name, cmd[2])
 
-        with monkey.patch_scope([(self.base, '_exec', _fake_exec)]):
-            self.base.stop()
+        with monkey.patch_scope([(self.runner, 'call', _fake_call)]):
+            self.runner.stop()
 
     def test_stats_pristine(self):
-        stats = list(convirt.runtime.Base.stats())
+        stats = list(convirt.runtime.Runner.stats())
         self.assertEqual(stats, [])
 
     def test_stats_faked_no_conts(self):
         with monkey.patch_scope([(subprocess, 'check_output',
                                   _fake_check_output_sd_cgtop_sys)]):
-            stats = list(convirt.runtime.Base.stats())
+            stats = list(convirt.runtime.Runner.stats())
             self.assertEqual(stats, [])
 
     def test_stats_faked__conts(self):
         with monkey.patch_scope([(subprocess, 'check_output',
                                   _fake_check_output_sd_cgtop_conts)]):
-            stats = list(convirt.runtime.Base.stats())
+            stats = list(convirt.runtime.Runner.stats())
             self.assertEqual(len(stats), len(_SD_CGTOP_CONTS))
             for vm_uuid in _SD_CGTOP_CONTS:
                 for stat in stats:

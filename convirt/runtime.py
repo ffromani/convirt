@@ -80,6 +80,51 @@ def get_all():
         yield item
 
 
+class Runner(object):
+
+    def __init__(self, unit_name, conf=None):
+        self._unit_name = unit_name
+        self._conf = config.current() if conf is None else conf
+
+    def stop(self):
+        cmd = [
+            _SYSTEMCTL.cmd(),
+            'stop',
+            self._unit_name,
+        ]
+        self.call(cmd)
+
+    def start(self, *args):
+        cmd = [
+            _SYSTEMD_RUN.cmd(),
+            '--unit="%s"' % self._unit_name,
+            '--slice=%s' % self._conf.cgroup_slice,
+            '--property=CPUAccounting=1',
+            '--property=MemoryAccounting=1',
+            '--property=BlockIOAccounting=1',
+            '--uid=%i' % self._conf.uid,
+            '--gid=%i' % self._conf.gid,
+        ]
+        cmd.extend(*args)
+        self.call(cmd)
+
+    @staticmethod
+    def stats():
+        output = str(subprocess.check_output([
+            _SYSTEMD_CGTOP.cmd(),
+            '-r',
+        ]))
+        for stat in _parse_systemd_cgtop(output):
+            yield stat
+
+    def call(self, cmd):
+        command = [_SUDO.cmd() if self._conf.use_sudo else []]
+        command.extend(cmd)
+        rc = subprocess.check_call(command)
+        if rc != 0:
+            raise OperationFailed()
+
+
 class Base(object):
 
     _PATH = _NULL
@@ -91,56 +136,35 @@ class Base(object):
         except command.NotFound:
             return False
 
-    def __init__(self, vm_uuid, base_dir):
+    def __init__(self, vm_uuid, conf=None):
         self._vm_uuid = vm_uuid
-        self._base_dir = base_dir
-        self._conf = config.current()
+        self._conf = config.current() if conf is None else conf
+        self._run_dir = os.path.join(self._conf.run_dir, self._vm_uuid)
+        self._runner = Runner(self.unit_name(), self._conf)
+
+    def setup(self):
+        os.mkdir(self._run_dir, mode=0o750)
+
+    def teardown(self):
+        os.rmdir(self._run_dir)
 
     def configure(self, xml_tree):
         raise NotImplementedError
 
-    def start(self):
+    def start(self, target):
         raise NotImplementedError
 
     def stop(self):
-        cmd = [
-            _SYSTEMCTL.cmd(),
-            'stop',
-            self._unit_name(),
-        ]
-        self._exec(cmd)
+        raise NotImplementedError
 
-    def run(self, *args):
-        cmd = [
-            _SYSTEMD_RUN.cmd(),
-            '--unit="%s"' % self._unit_name(),
-            '--slice=%s' % self._conf.cgroup_slice,
-            '--property=CPUAccounting=1',
-            '--property=MemoryAccounting=1',
-            '--property=BlockIOAccounting=1',
-            '--uid=%i' % self._conf.uid,
-            '--gid=%i' % self._conf.gid,
-        ]
-        cmd.extend(*args)
-        self._exec(cmd)
+    def status(self):
+        raise NotImplementedError
 
-    @staticmethod
-    def stats():
-        output = str(subprocess.check_output([
-            _SYSTEMD_CGTOP.cmd(),
-        ]))
-        for stat in _parse_systemd_cgtop(output):
-            yield stat
+    def runtime_name(self):
+        raise NotImplementedError
 
-    def _unit_name(self):
+    def unit_name(self):
         return "%s%s" % (_PREFIX, self._vm_uuid)
-
-    def _exec(self, cmd):
-        command = [_SUDO.cmd() if self._conf.use_sudo else []]
-        command.extend(cmd)
-        rc = subprocess.check_call(command)
-        if rc != 0:
-            raise OperationFailed()
 
 
 def _vm_uuid_from_unit(unit):
