@@ -114,6 +114,9 @@ class Base(object):
         cmd = [
             _SYSTEMD_RUN.cmd(),
             '--unit="%s"' % self._unit_name(),
+            '--property=CPUAccounting=1',
+            '--property=MemoryAccounting=1',
+            '--property=BlockIOAccounting=1',
             '--uid=%i' % self._conf.uid,
             '--gid=%i' % self._conf.gid,
         ]
