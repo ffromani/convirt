@@ -30,6 +30,7 @@ class ConfigTests(testlib.TestCase):
             uid=42,
             gid=42,
             tools_dir='/usr/local/libexec/convirt/test',
+            run_dir='/run/convirt_d',
             use_sudo=False,
             cgroup_slice='convirt_slice',
         )
