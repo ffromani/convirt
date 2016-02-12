@@ -142,8 +142,11 @@ class Base(object):
         self._run_dir = os.path.join(self._conf.run_dir, self._vm_uuid)
         self._runner = Runner(self.unit_name(), self._conf)
 
+    def unit_name(self):
+        return "%s%s" % (_PREFIX, self._vm_uuid)
+
     def setup(self):
-        os.mkdir(self._run_dir, mode=0o750)
+        os.mkdir(self._run_dir, 0o750)
 
     def teardown(self):
         os.rmdir(self._run_dir)
@@ -162,9 +165,6 @@ class Base(object):
 
     def runtime_name(self):
         raise NotImplementedError
-
-    def unit_name(self):
-        return "%s%s" % (_PREFIX, self._vm_uuid)
 
 
 def _vm_uuid_from_unit(unit):
