@@ -28,7 +28,6 @@ from . import config
 _NULL = command.Path('false', paths=tuple())
 _SUDO = command.Path('sudo')
 _SYSTEMCTL = command.Path('systemctl')
-_SYSTEMD_CGTOP = command.Path('systemd-cgtop')
 _SYSTEMD_RUN = command.Path('systemd-run')
 
 _PREFIX = 'convirt-'
@@ -39,32 +38,6 @@ class OperationFailed(Exception):
     """
     TODO
     """
-
-
-class CGStat(object):
-
-    __slots__ = (
-        'path', 'tasks', 'cpu_percentage', 'memory', 'input_per_sec',
-        'output_per_sec',
-    )
-
-    @classmethod
-    def from_cgtop_line(cls, line):
-        items = line.split()
-        return cls(**dict(zip(cls.__slots__, items)))
-
-    def __init__(self, **kwargs):
-        for attr, value in kwargs.items():
-            if attr == 'path':  # TODO
-                setattr(self, attr, value)
-            else:
-                setattr(self, attr,
-                        _cgtop_value_to_int(value))
-
-    @property
-    def uuid(self):
-        _, unit = os.path.split(self.path)
-        return _vm_uuid_from_unit(unit)
 
 
 def get_all():
@@ -119,12 +92,7 @@ class Runner(object):
 
     @staticmethod
     def stats():
-        output = str(subprocess.check_output([
-            _SYSTEMD_CGTOP.cmd(),
-            '-r',
-        ]))
-        for stat in _parse_systemd_cgtop(output):
-            yield stat
+        return []  # TODO
 
     def call(self, cmd):
         command = [_SUDO.cmd() if self._conf.use_sudo else []]
@@ -183,12 +151,6 @@ def _vm_uuid_from_unit(unit):
     return name.replace(_PREFIX, '', 1)
 
 
-def _parse_systemd_cgtop(output):
-    for line in output.splitlines():
-        if _PREFIX in line:
-            yield CGStat.from_cgtop_line(line)
-
-
 def _parse_systemctl_list_units(output):
     for line in output.splitlines():
         if not line:
@@ -198,13 +160,3 @@ def _parse_systemctl_list_units(output):
             yield _vm_uuid_from_unit(unit)
         except ValueError:
             pass
-
-
-def _cgtop_value_to_int(value):
-    try:
-        return int(value)
-    except ValueError:
-        if value == '-':
-            return 0
-        else:
-            raise
