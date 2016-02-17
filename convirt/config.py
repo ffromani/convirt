@@ -28,8 +28,8 @@ Environment = collections.namedtuple(
 
 
 _ENV = Environment(
-    uid=36,
-    gid=36,
+    uid=None,
+    gid=None,
     tools_dir='/usr/libexec/convirt',
     run_dir='/run/convirt',
     use_sudo=True,

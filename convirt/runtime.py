@@ -102,9 +102,11 @@ class Runner(object):
             '--property=CPUAccounting=1',
             '--property=MemoryAccounting=1',
             '--property=BlockIOAccounting=1',
-            '--uid=%i' % self._conf.uid,
-            '--gid=%i' % self._conf.gid,
         ]
+        if self._conf.uid is not None:
+            cmd.append('--uid=%i' % self._conf.uid)
+        if self._conf.gid is not None:
+            cmd.append('--gid=%i' % self._conf.gid)
         cmd.extend(*args)
         self.call(cmd)
 
