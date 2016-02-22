@@ -18,6 +18,7 @@
 # Refer to the README and COPYING files for full details of the license
 #
 
+import collections
 import os
 import os.path
 
@@ -49,28 +50,33 @@ class Rkt(runtime.Base):
     def running(self):
         return self._rkt_uuid is not None
 
-    def configure(self, xml_tree):
-        pass  # TODO
+    def start(self, target=None):
+        if self.running:
+            raise runtime.OperationFailed('already running')
 
-    def start(self, target):
+        image = self._run_conf.image_path if target is None else target
         cmd = [
-            _RKT.cmd,
+            Rkt._PATH.cmd(),
             '--uuid-file-save="%s"' % self._rkt_uuid_path,
             '--insecure-options=image',  # FIXME
             'run',
-            '%r' % target,
+            '--memory=%iM' % (self._run_conf.memory_size_mib),
+            '%r' % image,
         ]
         self._runner.start(cmd)
         with open(self._rkt_uuid_path, 'rt') as f:
             self._rkt_uuid = f.read().strip()
 
     def stop(self):
+        if not self.running:
+            raise runtime.OperationFailed('not running')
+
         cmd = [
             _MACHINECTL.cmd(),
             'poweroff',
             self.runtime_name(),
         ]
-        self.call(cmd)
+        self._runner.call(cmd)
         os.remove(self._rkt_uuid_path)
         self._rkt_uuid = None
     
