@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016 Red Hat, Inc.
+# Copyright 2016 Red Hat, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published
@@ -19,11 +19,23 @@
 #
 
 
-from . import connection
-from . import errors
+from . import rkt
+from . import runtime
 
 
-def openAuth(uri, auth, flags=0):
-    if uri != 'convirt:///system':
-        errors.throw()  # TODO: more specific error?
-    return connection.Connection()
+def _available():
+    runtimes = {}
+    if rkt.Rkt.available():
+        runtimes[rkt.Rkt.NAME] = rkt.Rkt
+    return runtimes
+
+def supported():
+    runtimes = _available()
+    return frozenset(runtimes.keys())
+
+
+def create(rt, *args, **kwargs):
+    runtimes = _available()
+    if rt in runtimes:
+        return runtimes[rt](*args, **kwargs)
+    raise runtime.Unsupported(rt)
