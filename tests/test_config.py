@@ -25,6 +25,15 @@ from . import testlib
 
 class ConfigTests(testlib.TestCase):
 
+    def setUp(self):
+        self.saved_conf = convirt.config.current()
+
+    def tearDown(self):
+        convirt.config.setup(self.saved_conf)
+
+    def test_get(self):
+        self.assertNotRaises(convirt.config.current)
+
     def test_update(self):
         conf = convirt.config.Environment(
             uid=42,
