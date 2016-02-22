@@ -37,6 +37,10 @@ class DomainIdsTests(unittest.TestCase):
         <domain type="kvm" xmlns:ovirt="http://ovirt.org/vm/tune/1.0">
             <name>testVm</name>
             <uuid>%s</uuid>
+            <maxMemory>0</maxMemory>
+            <devices>
+                <emulator>rkt</emulator>
+            </devices>
         </domain>
         """
         self.dom = convirt.domain.Domain(
@@ -50,23 +54,40 @@ class DomainIdsTests(unittest.TestCase):
         self.assertEqual(self.dom.UUIDString(), str(self.guid))
 
 
-_MINIMAL_DOM_XML = """<?xml version="1.0" encoding="utf-8"?>
+def _minimal_dom_xml():
+    return """<?xml version="1.0" encoding="utf-8"?>
 <domain type="kvm" xmlns:ovirt="http://ovirt.org/vm/tune/1.0">
   <name>testVm</name>
-  <uuid>ce051993-3f10-4478-94cf-295c919bf7e3</uuid>
+  <uuid>%s</uuid>
+  <maxMemory>0</maxMemory>
+  <devices>
+    <emulator>rkt</emulator>
+    <disk type='file' device='disk' snapshot='no'>
+      <driver name='qemu' type='raw' cache='none' error_policy='stop' io='threads'/>
+      <source file='/rhev/data-center/00000001-0001-0001-0001-00000000027f/43db3789-bb16-40bd-a9fc-3cced1b23ea6/images/90bece76-2df6-4a88-bfc8-f6f7461b7b8b/844e5378-6700-45ba-a846-67eba730e24b'>
+        <seclabel model='selinux' labelskip='yes'/>
+      </source>
+      <backingStore/>
+      <target dev='vda' bus='virtio'/>
+      <serial>90bece76-2df6-4a88-bfc8-f6f7461b7b8b</serial>
+      <alias name='virtio-disk0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
+    </disk>
+  </devices>
 </domain>
-"""
+""" % (str(uuid.uuid4()))
 
 
 class DomainXMLTests(unittest.TestCase):
 
     def test_XMLDesc(self):
-        dom = convirt.domain.Domain(_MINIMAL_DOM_XML)
-        self.assertEqual(dom.XMLDesc(0), _MINIMAL_DOM_XML)
+        dom_xml = _minimal_dom_xml()
+        dom = convirt.domain.Domain(dom_xml)
+        self.assertEqual(dom.XMLDesc(0), dom_xml)
 
     def test_XMLDesc_ignore_flags(self):
         # TODO: provide XML to exercise all the features.
-        _TEST_DOM_XML = _MINIMAL_DOM_XML
+        _TEST_DOM_XML = _minimal_dom_xml()
         dom = convirt.domain.Domain(_TEST_DOM_XML)
         self.assertEqual(dom.XMLDesc(libvirt.VIR_DOMAIN_XML_SECURE),
                                      _TEST_DOM_XML)
@@ -79,7 +100,7 @@ class DomainXMLTests(unittest.TestCase):
 class UnsupportedAPITests(unittest.TestCase):
 
     def test_migrate(self):
-        dom = convirt.domain.Domain(_MINIMAL_DOM_XML)
+        dom = convirt.domain.Domain(_minimal_dom_xml())
         self.assertRaises(libvirt.libvirtError,
                           dom.migrate,
                           {})
@@ -88,7 +109,7 @@ class UnsupportedAPITests(unittest.TestCase):
 class RegistrationTests(unittest.TestCase):
 
     def test_destroy_registered(self):
-        dom = convirt.domain.Domain.create(_MINIMAL_DOM_XML)
+        dom = convirt.domain.Domain.create(_minimal_dom_xml())
         existing_doms = convirt.doms.get_all()
         self.assertEquals(len(existing_doms), 1)
         self.assertEquals(dom.ID, existing_doms[0].ID)
@@ -96,7 +117,7 @@ class RegistrationTests(unittest.TestCase):
         self.assertEquals(convirt.doms.get_all(), [])
 
     def test_destroy_unregistered(self):
-        dom = convirt.domain.Domain(_MINIMAL_DOM_XML)
+        dom = convirt.domain.Domain(_minimal_dom_xml())
         self.assertEquals(convirt.doms.get_all(), [])
         self.assertRaises(libvirt.libvirtError,
                           dom.destroy)
