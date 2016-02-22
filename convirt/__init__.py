@@ -23,6 +23,10 @@ from . import connection
 from . import errors
 
 
+def supported():
+    return frozenset(('rkt',))
+
+
 def openAuth(uri, auth, flags=0):
     if uri != 'convirt:///system':
         errors.throw()  # TODO: more specific error?
