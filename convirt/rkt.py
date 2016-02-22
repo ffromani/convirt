@@ -31,6 +31,8 @@ _RKT = command.Path('rkt')
 
 class Rkt(runtime.Base):
 
+    NAME = 'rkt'
+
     _PREFIX = 'rkt-'
 
     _RKT_UUID_FILE = 'rkt_uuid'

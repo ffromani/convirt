@@ -39,3 +39,13 @@ def not_raises(test_case):
         yield
     except Exception as e:
         raise test_case.failureException("Exception raised: %s" % e)
+
+
+class TruePath(object):
+    def cmd(self):
+        return True
+
+
+class NonePath(object):
+    def cmd(self):
+        return None
