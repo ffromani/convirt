@@ -181,6 +181,9 @@ class RunnerTests(testlib.TestCase):
         self.unit_name = 'test'
         self.runner = convirt.runtime.Runner(self.unit_name)
 
+    def test_created_not_running(self):
+        self.assertFalse(self.runner.running)
+
     def test_run(self):
 
         def _fake_call(cmd):
@@ -198,6 +201,7 @@ class RunnerTests(testlib.TestCase):
 
         with monkey.patch_scope([(self.runner, 'call', _fake_call)]):
             self.runner.start(['/bin/sleep', '42m'])
+            self.assertTrue(self.runner.running)
 
     def test_stop(self):
 

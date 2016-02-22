@@ -43,6 +43,10 @@ class Rkt(runtime.Base):
                                            self._RKT_UUID_FILE)
         self._rkt_uuid = None
 
+    @property
+    def running(self):
+        return self._rkt_uuid is not None
+
     def configure(self, xml_tree):
         pass  # TODO
 
@@ -69,4 +73,6 @@ class Rkt(runtime.Base):
         self._rkt_uuid = None
     
     def runtime_name(self):
+        if self._rkt_uuid is None:
+            return None
         return '%s%s' % (self._PREFIX, self._rkt_uuid)

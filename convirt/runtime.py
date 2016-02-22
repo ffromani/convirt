@@ -85,6 +85,11 @@ class Runner(object):
     def __init__(self, unit_name, conf=None):
         self._unit_name = unit_name
         self._conf = config.current() if conf is None else conf
+        self._running = False
+
+    @property
+    def running(self):
+        return self._running
 
     def stop(self):
         cmd = [
@@ -93,6 +98,7 @@ class Runner(object):
             self._unit_name,
         ]
         self.call(cmd)
+        self._running = False
 
     def start(self, *args):
         cmd = [
@@ -109,6 +115,7 @@ class Runner(object):
             cmd.append('--gid=%i' % self._conf.gid)
         cmd.extend(*args)
         self.call(cmd)
+        self._running = True
 
     @staticmethod
     def stats():
