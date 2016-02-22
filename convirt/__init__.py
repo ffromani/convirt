@@ -22,9 +22,14 @@
 from . import connection
 from . import errors
 
+from . import rkt
+
 
 def supported():
-    return frozenset(('rkt',))
+    runtimes = []
+    if rkt.Rkt.available():
+        runtimes.append(rkt.Rkt.NAME)
+    return frozenset(runtimes)
 
 
 def openAuth(uri, auth, flags=0):

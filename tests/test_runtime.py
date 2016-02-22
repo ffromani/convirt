@@ -93,16 +93,6 @@ systemd-tmpfiles-clean.timer                                                    
         self.assertEqual(names, [])
 
 
-class TruePath(object):
-    def cmd(self):
-        return True
-
-
-class NonePath(object):
-    def cmd(self):
-        return None
-
-
 class RaisingPath(object):
     def cmd(self):
         raise convirt.command.NotFound()
@@ -115,11 +105,13 @@ class RuntimeBaseAvailableTests(testlib.TestCase):
             self.assertFalse(convirt.runtime.Base.available())
 
     def test_not_available(self):
-        with monkey.patch_scope([(convirt.runtime.Base, '_PATH', NonePath())]):
+        with monkey.patch_scope([(convirt.runtime.Base, '_PATH',
+                                  testlib.NonePath())]):
             self.assertFalse(convirt.runtime.Base.available())
 
     def test_available(self):
-        with monkey.patch_scope([(convirt.runtime.Base, '_PATH', TruePath())]):
+        with monkey.patch_scope([(convirt.runtime.Base, '_PATH',
+                                  testlib.TruePath())]):
             self.assertTrue(convirt.runtime.Base.available())
 
 

@@ -136,6 +136,8 @@ class Runner(object):
 
 class Base(object):
 
+    NAME = ''
+
     _PATH = _NULL
 
     @classmethod

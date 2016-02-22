@@ -22,9 +22,20 @@
 import unittest
 
 import convirt
+import convirt.rkt
+
+from . import monkey
+from . import testlib
 
 
 class FunctionsTests(unittest.TestCase):
 
+    def test_no_runtimes_supported(self):
+        with monkey.patch_scope([(convirt.rkt.Rkt, '_PATH',
+                                  testlib.NonePath())]):
+            self.assertFalse(convirt.supported())
+
     def test_supported(self):
-        self.assertTrue(convirt.supported())
+        with monkey.patch_scope([(convirt.rkt.Rkt, '_PATH',
+                                  testlib.TruePath())]):
+            self.assertTrue(convirt.supported())
