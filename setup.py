@@ -31,6 +31,7 @@ setup(name='convirt',
       url='TODO',
       download_url='TODO',
       packages=[ 'convirt' ],
+      py_modules=[ 'cgview' ],
       install_requires=[
         "libvirt-python",
       ],
