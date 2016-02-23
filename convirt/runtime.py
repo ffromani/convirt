@@ -95,7 +95,9 @@ class Runner(object):
         return []  # TODO
 
     def call(self, cmd):
-        command = [_SUDO.cmd() if self._conf.use_sudo else []]
+        command = []
+        if self._conf.use_sudo:
+            command.append(_SUDO.cmd())
         command.extend(cmd)
         rc = subprocess.check_call(command)
         if rc != 0:
