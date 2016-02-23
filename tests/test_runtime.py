@@ -23,6 +23,7 @@ import os
 import subprocess
 import uuid
 import unittest
+import xml.etree.ElementTree as ET
 
 import convirt
 import convirt.command
@@ -151,9 +152,6 @@ class RuntimeBaseAPITests(testlib.TestCase):
     def setUp(self):
         self.base = convirt.runtime.Base(str(uuid.uuid4()))
 
-    def test_configure(self):
-        self.assertRaises(NotImplementedError, self.base.configure, '')
-
     def test_start(self):
         self.assertRaises(NotImplementedError, self.base.start, '')
 
@@ -171,12 +169,12 @@ class RunnerTests(testlib.TestCase):
 
     def setUp(self):
         self.unit_name = 'test'
-        self.runner = convirt.runtime.Runner(self.unit_name)
 
     def test_created_not_running(self):
-        self.assertFalse(self.runner.running)
+        runner = convirt.runtime.Runner(self.unit_name)
+        self.assertFalse(runner.running)
 
-    def test_run(self):
+    def test_run_default_conf(self):
 
         def _fake_call(cmd):
             # at least:
@@ -191,9 +189,41 @@ class RunnerTests(testlib.TestCase):
             )
             self.assertTrue(unit_found)
 
-        with monkey.patch_scope([(self.runner, 'call', _fake_call)]):
-            self.runner.start(['/bin/sleep', '42m'])
-            self.assertTrue(self.runner.running)
+        runner = convirt.runtime.Runner(self.unit_name)
+        with monkey.patch_scope([(runner, 'call', _fake_call)]):
+            runner.start(['/bin/sleep', '42m'])
+            self.assertTrue(runner.running)
+
+    def test_run_with_specific_uid(self):
+        uid = 1764
+
+        def _fake_call(cmd):
+            uid_found = any(
+                'uid=%i' % uid in c for c in cmd
+            )
+            self.assertTrue(uid_found)
+
+        conf = convirt.config.current()
+        conf.uid = uid
+        runner = convirt.runtime.Runner(self.unit_name, conf)
+        with monkey.patch_scope([(runner, 'call', _fake_call)]):
+            runner.start(['/bin/sleep', '42m'])
+
+    def test_run_with_specific_gid(self):
+        gid = 1764
+
+        def _fake_call(cmd):
+            gid_found = any(
+                'gid=%i' % gid in c for c in cmd
+            )
+            self.assertTrue(gid_found)
+
+        conf = convirt.config.current()
+        conf.gid = gid
+        runner = convirt.runtime.Runner(self.unit_name, conf)
+        with monkey.patch_scope([(runner, 'call', _fake_call)]):
+            runner.start(['/bin/sleep', '42m'])
+
 
     def test_stop(self):
 
@@ -207,9 +237,76 @@ class RunnerTests(testlib.TestCase):
             self.assertEqual('stop', cmd[1])
             self.assertIn(self.unit_name, cmd[2])
 
-        with monkey.patch_scope([(self.runner, 'call', _fake_call)]):
-            self.runner.stop()
+        runner = convirt.runtime.Runner(self.unit_name)
+        with monkey.patch_scope([(runner, 'call', _fake_call)]):
+            runner.stop()
 
     def test_stats_pristine(self):
         stats = list(convirt.runtime.Runner.stats())
         self.assertEqual(stats, [])
+
+
+class RuntimeBaseConfigureTests(testlib.TestCase):
+
+    def setUp(self):
+        self.vm_uuid = str(uuid.uuid4())
+        self.base = convirt.runtime.Base(self.vm_uuid)
+
+    def test_missing_content(self):
+        root = ET.fromstring(
+        """<domain type='kvm' id='2'>
+        </domain>""")
+        self.assertRaises(convirt.runtime.ConfigError,
+                          self.base.configure,
+                          root)
+
+    def test_missing_memory(self):
+        root = ET.fromstring(
+        """<domain type='kvm' id='2'>
+          <devices>
+            <disk type='file' device='disk' snapshot='no'>
+              <driver name='qemu' type='raw' cache='none' error_policy='stop' io='threads'/>
+              <source file='/random/path/to/disk/image'>
+                <seclabel model='selinux' labelskip='yes'/>
+              </source>
+              <backingStore/>
+              <target dev='vdb' bus='virtio'/>
+              <serial>90bece76-2df6-4a88-bfc8-f6f7461b7b8b</serial>
+              <alias name='virtio-disk1'/>
+              <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
+            </disk>
+          </devices>
+        </domain>""")
+        self.assertRaises(convirt.runtime.ConfigError,
+                          self.base.configure,
+                          root)
+
+    def test_missing_disk(self):
+        root = ET.fromstring(
+        """<domain type='kvm' id='2'>
+          <maxMemory slots='16' unit='KiB'>4294967296</maxMemory>
+          <devices>
+          </devices>
+        </domain>""")
+        self.assertRaises(convirt.runtime.ConfigError,
+                          self.base.configure,
+                          root)
+
+    def test_config_present(self):
+        MEM = 4 * 1024 * 1024
+        PATH = '/random/path/to/disk/image'
+        root = ET.fromstring(
+        """<domain type='kvm' id='2'>
+          <maxMemory slots='16' unit='KiB'>{mem}</maxMemory>
+          <devices>
+            <disk type='file' device='disk' snapshot='no'>
+              <source file='{path}'>
+              </source>
+              <target dev='vdb' bus='virtio'/>
+            </disk>
+          </devices>
+        </domain>""".format(mem=MEM*1024, path=PATH))
+        self.assertNotRaises(self.base.configure, root)
+        conf = self.base.runtime_config
+        self.assertEquals(conf.image_path, PATH)
+        self.assertEquals(conf.memory_size_mib, MEM)

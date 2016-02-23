@@ -18,6 +18,8 @@
 # Refer to the README and COPYING files for full details of the license
 #
 
+# TODO: logging
+import collections
 import os.path
 import subprocess
 
@@ -34,7 +36,19 @@ _PREFIX = 'convirt-'
 _SERVICE_EXT = ".service"
 
 
+class Unsupported(Exception):
+    """
+    TODO
+    """
+
+
 class OperationFailed(Exception):
+    """
+    TODO
+    """
+
+
+class ConfigError(Exception):
     """
     TODO
     """
@@ -104,6 +118,11 @@ class Runner(object):
             raise OperationFailed()
 
 
+# TODO: networking
+RunConfig = collections.namedtuple('RunConfig',
+                                   ['image_path', 'memory_size_mib'])
+
+
 class Base(object):
 
     NAME = ''
@@ -120,6 +139,7 @@ class Base(object):
     def __init__(self, vm_uuid, conf=None):
         self._vm_uuid = vm_uuid
         self._conf = config.current() if conf is None else conf
+        self._run_conf = None
         self._run_dir = os.path.join(self._conf.run_dir, self._vm_uuid)
         self._runner = Runner(self.unit_name(), self._conf)
 
@@ -133,7 +153,10 @@ class Base(object):
         os.rmdir(self._run_dir)
 
     def configure(self, xml_tree):
-        raise NotImplementedError
+        mem = self._find_memory(xml_tree)
+        path = self._find_image(xml_tree)
+        # TODO: network
+        self._run_conf = RunConfig(path, mem)
 
     def start(self, target=None):
         raise NotImplementedError
@@ -146,6 +169,27 @@ class Base(object):
 
     def runtime_name(self):
         raise NotImplementedError
+
+    @property
+    def runtime_config(self):
+        """
+        Shortcut for test purposes only. May be removed in future versions.
+        """
+        return self._run_conf
+
+    def _find_memory(self, xml_tree):
+        mem_node = xml_tree.find('./maxMemory')
+        if mem_node is not None:
+            return int(mem_node.text)/1024
+        raise ConfigError('memory')
+
+    def _find_image(self, xml_tree):
+        disks = xml_tree.findall('.//disk[@type="file"]')
+        for disk in disks:
+            source = disk.find('./source/[@file]')
+            if source is not None:
+                return source.get('file')
+        raise ConfigError('image path')
 
 
 def _vm_uuid_from_unit(unit):
