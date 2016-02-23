@@ -31,6 +31,11 @@ class ConfigTests(testlib.TestCase):
     def tearDown(self):
         convirt.config.setup(self.saved_conf)
 
+    def test_default_not_empty(self):
+        conf = convirt.config.current()
+        self.assertTrue(conf)
+        self.assertGreaterEqual(len(conf), 0)
+
     def test_get(self):
         self.assertNotRaises(convirt.config.current)
 
@@ -45,3 +50,19 @@ class ConfigTests(testlib.TestCase):
         )
         self.assertNotRaises(convirt.config.setup, conf)
         self.assertEquals(convirt.config.current(), conf)
+        self.assertFalse(convirt.config.current() is conf)
+
+    def test_mutate(self):
+        conf = convirt.config.current()
+        conf.run_dir = '/run/convirt/random/dir'
+        convirt.config.setup(conf)
+        self.assertEquals(convirt.config.current(), conf)
+        self.assertFalse(convirt.config.current() is conf)
+
+    def test_attribute_does_not_disappear(self):
+        conf = convirt.config.current()
+        ref_value = conf.use_sudo
+        del conf['use_sudo']
+        convirt.config.setup(conf)
+        new_conf = convirt.config.current()
+        self.assertEquals(new_conf.use_sudo, ref_value)
