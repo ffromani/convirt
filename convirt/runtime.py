@@ -135,7 +135,7 @@ class Base(object):
     def configure(self, xml_tree):
         raise NotImplementedError
 
-    def start(self, target):
+    def start(self, target=None):
         raise NotImplementedError
 
     def stop(self):
