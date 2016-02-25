@@ -19,7 +19,11 @@
 #
 
 from contextlib import contextmanager
+import shutil
+import tempfile
 import unittest
+
+import convirt.config
 
 
 class TestCase(unittest.TestCase):
@@ -49,3 +53,35 @@ class TruePath(object):
 class NonePath(object):
     def cmd(self):
         return None
+
+
+TEMPDIR = '/tmp'
+
+
+@contextmanager
+def named_temp_dir(base=TEMPDIR):
+    tmp_dir = tempfile.mkdtemp(dir=base)
+    try:
+        yield tmp_dir
+    finally:
+        shutil.rmtree(tmp_dir)
+
+
+def make_conf(**kwargs):
+    conf = convirt.config.current()
+    conf.use_sudo = False  # hack for convenience
+    for k, v in kwargs.items():
+        setattr(conf, k, v)
+    return conf
+
+
+@contextmanager
+def global_conf(**kwargs):
+    saved_conf = convirt.config.current()
+
+    conf = make_conf(**kwargs)
+    convirt.config.setup(conf)
+    try:
+        yield conf
+    finally:
+        convirt.config.setup(saved_conf)

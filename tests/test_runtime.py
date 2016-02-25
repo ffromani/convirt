@@ -116,11 +116,6 @@ class RuntimeBaseAvailableTests(testlib.TestCase):
             self.assertTrue(convirt.runtime.Base.available())
 
 
-class FakeConf(object):
-    def __init__(self, run_dir):
-        self.run_dir = run_dir
-
-
 class RuntimeBaseTests(testlib.TestCase):
 
     def setUp(self):
@@ -131,20 +126,23 @@ class RuntimeBaseTests(testlib.TestCase):
         self.assertIn(self.vm_uuid, self.base.unit_name())
 
     def test_setup(self):
-        conf = FakeConf('/tmp')
-        base = convirt.runtime.Base(self.vm_uuid, conf)
-        base.setup()
-        # XXX
-        self.assertTrue(os.path.isdir(base._run_dir))
-        self.assertNotEquals(base._run_dir, conf.run_dir)
-        self.assertTrue(base._run_dir.startswith(conf.run_dir))
+        with testlib.named_temp_dir() as tmp_dir:
+            conf = testlib.make_conf(run_dir=tmp_dir)
+            base = convirt.runtime.Base(self.vm_uuid, conf)
+
+            base.setup()
+            # XXX
+            self.assertTrue(os.path.isdir(base._run_dir))
+            self.assertNotEquals(base._run_dir, conf.run_dir)
+            self.assertTrue(base._run_dir.startswith(conf.run_dir))
 
     def test_teardown(self):
-        conf = FakeConf('/tmp')
-        base = convirt.runtime.Base(self.vm_uuid, conf)
-        base.setup()
-        base.teardown()
-        self.assertFalse(os.path.exists(base._run_dir))
+        with testlib.named_temp_dir() as tmp_dir:
+            conf = testlib.make_conf(run_dir=tmp_dir)
+            base = convirt.runtime.Base(self.vm_uuid, conf)
+            base.setup()
+            base.teardown()
+            self.assertFalse(os.path.exists(base._run_dir))
 
 
 class RuntimeBaseAPITests(testlib.TestCase):
