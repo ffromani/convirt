@@ -125,24 +125,6 @@ class RuntimeBaseTests(testlib.TestCase):
     def test_unit_name(self):
         self.assertIn(self.vm_uuid, self.base.unit_name())
 
-    def test_setup(self):
-        with testlib.named_temp_dir() as tmp_dir:
-            conf = testlib.make_conf(run_dir=tmp_dir)
-            base = convirt.runtime.Base(self.vm_uuid, conf)
-
-            base.setup()
-            # XXX
-            self.assertTrue(os.path.isdir(base._run_dir))
-            self.assertNotEquals(base._run_dir, conf.run_dir)
-            self.assertTrue(base._run_dir.startswith(conf.run_dir))
-
-    def test_teardown(self):
-        with testlib.named_temp_dir() as tmp_dir:
-            conf = testlib.make_conf(run_dir=tmp_dir)
-            base = convirt.runtime.Base(self.vm_uuid, conf)
-            base.setup()
-            base.teardown()
-            self.assertFalse(os.path.exists(base._run_dir))
 
 
 class RuntimeBaseAPITests(testlib.TestCase):

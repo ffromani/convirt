@@ -63,6 +63,20 @@ class AttrDict(MutableMapping):
 Environment = AttrDict
 
 
+# NOTE about run_dir:
+# we used to want
+# /base/dir/
+#         +- $UUID/
+#                +- rkt_uuid
+#
+# Actually, we don't need this subdir, so we switched
+# to the simpler schema.
+#
+# /base/dir/
+#         +- $UUID.rkt
+#
+# for the time being
+
 _ENV = Environment(
     uid=None,
     gid=None,

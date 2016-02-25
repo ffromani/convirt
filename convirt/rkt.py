@@ -40,10 +40,11 @@ class Rkt(runtime.Base):
 
     _PATH = _RKT
 
-    def __init__(self, vm_uuid):
-        super(Rkt, self).__init__(vm_uuid)
-        self._rkt_uuid_path = os.path.join(self._run_dir,
-                                           self._RKT_UUID_FILE)
+    def __init__(self, vm_uuid, conf=None):
+        super(Rkt, self).__init__(vm_uuid, conf)
+        rkt_uuid_file = '%s.%s' % (self._vm_uuid, self.NAME)
+        self._rkt_uuid_path = os.path.join(
+            self._conf.run_dir, rkt_uuid_file)
         self._rkt_uuid = None
 
     @property
