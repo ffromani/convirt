@@ -78,7 +78,10 @@ class Rkt(runtime.Base):
             self.runtime_name(),
         ]
         self._runner.call(cmd)
-        os.remove(self._rkt_uuid_path)
+        try:
+            os.remove(self._rkt_uuid_path)
+        except OSError:
+            pass  # TODO
         self._rkt_uuid = None
     
     def runtime_name(self):

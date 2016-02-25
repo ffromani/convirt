@@ -204,7 +204,6 @@ class RunnerTests(testlib.TestCase):
         with monkey.patch_scope([(runner, 'call', _fake_call)]):
             runner.start(['/bin/sleep', '42m'])
 
-
     def test_stop(self):
 
         def _fake_call(cmd):
