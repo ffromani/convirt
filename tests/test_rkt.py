@@ -58,7 +58,7 @@ class RktTests(testlib.RunnableTestCase):
         rkt.configure(root)
         rkt.start()
         try:
-            self.assertRaises(convirt.runtime.OperationFailed,
+            self.assertRaises(convirt.runner.OperationFailed,
                               rkt.start)
         finally:
             # not part of the test, but we don't want
@@ -72,7 +72,7 @@ class RktTests(testlib.RunnableTestCase):
         rkt.configure(root)
         rkt.start()
         try:
-            self.assertRaises(convirt.runtime.OperationFailed,
+            self.assertRaises(convirt.runner.OperationFailed,
                               rkt.start)
         finally:
             # not part of the test, but we don't want
@@ -83,5 +83,5 @@ class RktTests(testlib.RunnableTestCase):
         rkt = convirt.rkt.Rkt(str(uuid.uuid4()),
                               testlib.make_conf(run_dir=self.run_dir))
         self.assertFalse(rkt.running)
-        self.assertRaises(convirt.runtime.OperationFailed, rkt.stop)
+        self.assertRaises(convirt.runner.OperationFailed, rkt.stop)
 

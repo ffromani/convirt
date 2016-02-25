@@ -103,7 +103,7 @@ class RunnableTestCase(unittest.TestCase):
         self.patch = monkey.Patch([
             (convirt.rkt.Rkt, '_PATH', fake_rkt),
             (convirt.rkt, '_MACHINECTL', fake_mctl),
-            (convirt.runtime, '_SYSTEMD_RUN', fake_sdrun)])
+            (convirt.runner, '_SYSTEMD_RUN', fake_sdrun)])
         self.patch.apply()
 
     def tearDown(self):

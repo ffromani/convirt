@@ -28,7 +28,7 @@ import libvirt
 from . import api
 from . import errors
 from . import doms
-from . import runtime
+from . import runner
 
 
 class Domain(object):
@@ -56,7 +56,7 @@ class Domain(object):
         try:
             self._shutdown()
             doms.remove(vm_uuid)
-        except runtime.OperationFailed:
+        except runner.OperationFailed:
             errors.throw()  # FIXME: specific error
         except KeyError:
             errors.throw()  # FIXME: specific error

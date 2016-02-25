@@ -25,24 +25,13 @@ import subprocess
 
 from . import command
 from . import config
+from . import runner
 
 
 _NULL = command.Path('false', paths=tuple())
-_SUDO = command.Path('sudo')
-_SYSTEMCTL = command.Path('systemctl')
-_SYSTEMD_RUN = command.Path('systemd-run')
-
-_PREFIX = 'convirt-'
-_SERVICE_EXT = ".service"
 
 
 class Unsupported(Exception):
-    """
-    TODO
-    """
-
-
-class OperationFailed(Exception):
     """
     TODO
     """
@@ -52,70 +41,6 @@ class ConfigError(Exception):
     """
     TODO
     """
-
-
-def get_all():
-    cmd = [
-        _SYSTEMCTL.cmd(),
-        'list-units',
-        '--no-pager',
-        '--no-legend',
-        '%s*' % _PREFIX,
-    ]
-    output = subprocess.check_output(cmd)
-    for item in _parse_systemctl_list_units(output):
-        yield item
-
-
-class Runner(object):
-
-    def __init__(self, unit_name, conf=None):
-        self._unit_name = unit_name
-        self._conf = config.current() if conf is None else conf
-        self._running = False
-
-    @property
-    def running(self):
-        return self._running
-
-    def stop(self):
-        cmd = [
-            _SYSTEMCTL.cmd(),
-            'stop',
-            self._unit_name,
-        ]
-        self.call(cmd)
-        self._running = False
-
-    def start(self, *args):
-        cmd = [
-            _SYSTEMD_RUN.cmd(),
-            '--unit="%s"' % self._unit_name,
-            '--slice=%s' % self._conf.cgroup_slice,
-            '--property=CPUAccounting=1',
-            '--property=MemoryAccounting=1',
-            '--property=BlockIOAccounting=1',
-        ]
-        if self._conf.uid is not None:
-            cmd.append('--uid=%i' % self._conf.uid)
-        if self._conf.gid is not None:
-            cmd.append('--gid=%i' % self._conf.gid)
-        cmd.extend(*args)
-        self.call(cmd)
-        self._running = True
-
-    @staticmethod
-    def stats():
-        return []  # TODO
-
-    def call(self, cmd):
-        command = []
-        if self._conf.use_sudo:
-            command.append(_SUDO.cmd())
-        command.extend(cmd)
-        rc = subprocess.check_call(command)
-        if rc != 0:
-            raise OperationFailed()
 
 
 # TODO: networking
@@ -140,10 +65,10 @@ class Base(object):
         self._vm_uuid = vm_uuid
         self._conf = config.current() if conf is None else conf
         self._run_conf = None
-        self._runner = Runner(self.unit_name(), self._conf)
+        self._runner = runner.Runner(self.unit_name(), self._conf)
 
     def unit_name(self):
-        return "%s%s" % (_PREFIX, self._vm_uuid)
+        return "%s%s" % (runner.PREFIX, self._vm_uuid)
 
     def configure(self, xml_tree):
         mem = self._find_memory(xml_tree)
@@ -189,21 +114,3 @@ class Base(object):
             if source is not None:
                 return source.get('file')
         raise ConfigError('image path')
-
-
-def _vm_uuid_from_unit(unit):
-    name, ext = os.path.splitext(unit)
-    if ext != _SERVICE_EXT:  # TODO: check this
-        raise ValueError(unit)
-    return name.replace(_PREFIX, '', 1)
-
-
-def _parse_systemctl_list_units(output):
-    for line in output.splitlines():
-        if not line:
-            continue
-        unit = line.split()[0]
-        try:
-            yield _vm_uuid_from_unit(unit)
-        except ValueError:
-            pass
