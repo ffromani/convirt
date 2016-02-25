@@ -21,19 +21,67 @@
 
 import uuid
 import unittest
+import xml.etree.ElementTree as ET
 
 import convirt
 import convirt.rkt
 
+from . import testlib
 
-class RktTests(unittest.TestCase):
 
-    def setUp(self):
-        self.rkt_uuid = str(uuid.uuid4())
-        self.rkt = convirt.rkt.Rkt(self.rkt_uuid)
+class RktTests(testlib.RunnableTestCase):
 
     def test_created_not_running(self):
-        self.assertFalse(self.rkt.running)
+        rkt = convirt.rkt.Rkt(str(uuid.uuid4()))
+        self.assertFalse(rkt.running)
 
     def test_runtime_name_none_before_start(self):
-        self.assertEqual(self.rkt.runtime_name(), None)
+        rkt = convirt.rkt.Rkt(str(uuid.uuid4()))
+        self.assertEqual(rkt.runtime_name(), None)
+
+    def test_start_stop(self):
+        rkt = convirt.rkt.Rkt(str(uuid.uuid4()),
+                              testlib.make_conf(run_dir=self.run_dir))
+        root = ET.fromstring(testlib.minimal_dom_xml())
+        rkt.configure(root)
+        rkt.start()
+        try:
+            self.assertTrue(rkt.running)
+        finally:
+            rkt.stop()
+            self.assertFalse(rkt.running)
+
+    def test_start_twice(self):
+        rkt = convirt.rkt.Rkt(str(uuid.uuid4()),
+                              testlib.make_conf(run_dir=self.run_dir))
+        root = ET.fromstring(testlib.minimal_dom_xml())
+        rkt.configure(root)
+        rkt.start()
+        try:
+            self.assertRaises(convirt.runtime.OperationFailed,
+                              rkt.start)
+        finally:
+            # not part of the test, but we don't want
+            # to pollute the environment
+            rkt.stop()
+
+    def test_start_twice(self):
+        rkt = convirt.rkt.Rkt(str(uuid.uuid4()),
+                              testlib.make_conf(run_dir=self.run_dir))
+        root = ET.fromstring(testlib.minimal_dom_xml())
+        rkt.configure(root)
+        rkt.start()
+        try:
+            self.assertRaises(convirt.runtime.OperationFailed,
+                              rkt.start)
+        finally:
+            # not part of the test, but we don't want
+            # to pollute the environment
+            rkt.stop()
+
+    def test_stop_not_started(self):
+        rkt = convirt.rkt.Rkt(str(uuid.uuid4()),
+                              testlib.make_conf(run_dir=self.run_dir))
+        self.assertFalse(rkt.running)
+        self.assertRaises(convirt.runtime.OperationFailed, rkt.stop)
+

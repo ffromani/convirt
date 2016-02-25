@@ -23,6 +23,7 @@ import unittest
 
 import convirt
 import convirt.api
+import convirt.runtime
 
 from . import monkey
 from . import testlib
@@ -39,3 +40,8 @@ class FunctionsTests(unittest.TestCase):
         with monkey.patch_scope([(convirt.rkt.Rkt, '_PATH',
                                   testlib.TruePath())]):
             self.assertTrue(convirt.api.supported())
+
+    def test_create_unsupported(self):
+        self.assertRaises(convirt.runtime.Unsupported,
+                          convirt.api.create,
+                          'docker')

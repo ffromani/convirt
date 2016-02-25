@@ -21,9 +21,13 @@
 from contextlib import contextmanager
 import shutil
 import tempfile
+import uuid
 import unittest
 
+import convirt.command
 import convirt.config
+
+from . import monkey
 
 
 class TestCase(unittest.TestCase):
@@ -85,3 +89,47 @@ def global_conf(**kwargs):
         yield conf
     finally:
         convirt.config.setup(saved_conf)
+
+
+class RunnableTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.guid = uuid.uuid4()
+        self.run_dir = tempfile.mkdtemp()
+        paths = ['.', './tests']
+        fake_mctl = convirt.command.Path('true')
+        fake_rkt = convirt.command.Path('fake-rkt', paths=paths)
+        fake_sdrun = convirt.command.Path('fake-systemd-run', paths=paths)
+        self.patch = monkey.Patch([
+            (convirt.rkt.Rkt, '_PATH', fake_rkt),
+            (convirt.rkt, '_MACHINECTL', fake_mctl),
+            (convirt.runtime, '_SYSTEMD_RUN', fake_sdrun)])
+        self.patch.apply()
+
+    def tearDown(self):
+        self.patch.revert()
+        shutil.rmtree(self.run_dir)
+
+
+def minimal_dom_xml():
+    return """<?xml version="1.0" encoding="utf-8"?>
+<domain type="kvm" xmlns:ovirt="http://ovirt.org/vm/tune/1.0">
+  <name>testVm</name>
+  <uuid>{vm_uuid}</uuid>
+  <maxMemory>16384</maxMemory>
+  <devices>
+    <emulator>rkt</emulator>
+    <disk type='file' device='disk' snapshot='no'>
+      <driver name='qemu' type='raw' cache='none' error_policy='stop' io='threads'/>
+      <source file='/rhev/data-center/00000001-0001-0001-0001-00000000027f/43db3789-bb16-40bd-a9fc-3cced1b23ea6/images/90bece76-2df6-4a88-bfc8-f6f7461b7b8b/844e5378-6700-45ba-a846-67eba730e24b'>
+        <seclabel model='selinux' labelskip='yes'/>
+      </source>
+      <backingStore/>
+      <target dev='vda' bus='virtio'/>
+      <serial>90bece76-2df6-4a88-bfc8-f6f7461b7b8b</serial>
+      <alias name='virtio-disk0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
+    </disk>
+  </devices>
+</domain>
+""".format(vm_uuid=str(uuid.uuid4()))
