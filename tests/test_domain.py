@@ -18,21 +18,45 @@
 # Refer to the README and COPYING files for full details of the license
 #
 
-
+from contextlib import contextmanager
 import uuid
 import unittest
 
 import libvirt
 
 import convirt
+import convirt.command
 import convirt.domain
 import convirt.doms
+import convirt.rkt
 
 
-class DomainIdsTests(unittest.TestCase):
+from . import monkey
+from . import testlib
+
+
+class DomainTestCase(unittest.TestCase):
 
     def setUp(self):
         self.guid = uuid.uuid4()
+        paths = ['.', './tests']
+        fake_mctl = convirt.command.Path('true')
+        fake_rkt = convirt.command.Path('fake-rkt', paths=paths)
+        fake_sdrun = convirt.command.Path('fake-systemd-run', paths=paths)
+        self.patch = monkey.Patch([
+            (convirt.rkt.Rkt, '_PATH', fake_rkt),
+            (convirt.rkt, '_MACHINECTL', fake_mctl),
+            (convirt.runtime, '_SYSTEMD_RUN', fake_sdrun)])
+        self.patch.apply()
+
+    def tearDown(self):
+        self.patch.revert()
+
+
+class DomainIdsTests(DomainTestCase):
+
+    def setUp(self):
+        super(DomainIdsTests, self).setUp()
         self.xmldesc = """<?xml version="1.0" encoding="utf-8"?>
         <domain type="kvm" xmlns:ovirt="http://ovirt.org/vm/tune/1.0">
             <name>testVm</name>
@@ -78,7 +102,7 @@ def _minimal_dom_xml():
 """ % (str(uuid.uuid4()))
 
 
-class DomainXMLTests(unittest.TestCase):
+class DomainXMLTests(DomainTestCase):
 
     def test_XMLDesc(self):
         dom_xml = _minimal_dom_xml()
@@ -97,7 +121,7 @@ class DomainXMLTests(unittest.TestCase):
                                      _TEST_DOM_XML)
 
 
-class UnsupportedAPITests(unittest.TestCase):
+class UnsupportedAPITests(DomainTestCase):
 
     def test_migrate(self):
         dom = convirt.domain.Domain(_minimal_dom_xml())
@@ -106,10 +130,13 @@ class UnsupportedAPITests(unittest.TestCase):
                           {})
 
 
-class RegistrationTests(unittest.TestCase):
+class RegistrationTests(DomainTestCase):
 
     def test_destroy_registered(self):
-        dom = convirt.domain.Domain.create(_minimal_dom_xml())
+        with testlib.named_temp_dir() as tmp_dir:
+            conf = testlib.make_conf(run_dir=tmp_dir)
+            dom = convirt.domain.Domain.create(_minimal_dom_xml(), conf)
+
         existing_doms = convirt.doms.get_all()
         self.assertEquals(len(existing_doms), 1)
         self.assertEquals(dom.ID, existing_doms[0].ID)
@@ -117,7 +144,10 @@ class RegistrationTests(unittest.TestCase):
         self.assertEquals(convirt.doms.get_all(), [])
 
     def test_destroy_unregistered(self):
-        dom = convirt.domain.Domain(_minimal_dom_xml())
+        # you need to call create() to register into `doms'.
+        with testlib.named_temp_dir() as tmp_dir:
+            conf = testlib.make_conf(run_dir=tmp_dir)
+            dom = convirt.domain.Domain(_minimal_dom_xml(), conf)
+
         self.assertEquals(convirt.doms.get_all(), [])
-        self.assertRaises(libvirt.libvirtError,
-                          dom.destroy)
+        self.assertRaises(libvirt.libvirtError, dom.destroy)

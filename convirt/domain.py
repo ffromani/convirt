@@ -25,8 +25,10 @@ import xml.etree.ElementTree as ET
 import libvirt
 
 
+from . import api
 from . import errors
 from . import doms
+from . import runtime
 
 
 class Domain(object):
@@ -34,25 +36,34 @@ class Domain(object):
     _log = logging.getLogger('convirt.Domain')
 
     @classmethod
-    def create(cls, xmldesc):
-        inst = cls(xmldesc)
+    def create(cls, xmldesc, conf=None):
+        inst = cls(xmldesc, conf)
+        inst._startup()
         doms.add(inst)
         return inst
 
-    def __init__(self, xmldesc):
+    def __init__(self, xmldesc, conf=None):
         self._xmldesc = xmldesc
         self._root = ET.fromstring(xmldesc)
         self._vm_uuid = uuid.UUID(self._root.find('./uuid').text)
+        self._rt = api.create(self._root.find('./devices/emulator').text,
+                              vm_uuid=self.UUIDString(),
+                              conf=conf)
 
     def destroy(self):
         vm_uuid = self.UUIDString()
+
         try:
+            self._shutdown()
             doms.remove(vm_uuid)
+        except runtime.OperationFailed:
+            errors.throw()  # FIXME: specific error
         except KeyError:
             errors.throw()  # FIXME: specific error
 
-#    def reset(self, flags):
-#        pass
+    def reset(self, flags):
+        self._rt.stop()
+        self._rt.start()
 
     def ID(self):
         return self._vm_uuid.int
@@ -72,6 +83,15 @@ class Domain(object):
 #
 #    def info(self):
 #        pass
+
+    def _startup(self):
+        self._rt.setup()
+        self._rt.configure(self._root)
+        self._rt.start()
+
+    def _shutdown(self):
+        self._rt.stop()
+        self._rt.teardown()
 
     def __getattr__(self, name):
         # virDomain does not expose non-callable attributes.

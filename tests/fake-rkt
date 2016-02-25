@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+
+import os
+import os.path
+import sys
+import uuid
+
+_ARG = '--uuid-file-save'
+
+args = sys.argv[1:]
+
+def find_path(args):
+    for arg in args:
+        if arg.startswith(_ARG):
+            opt, val = arg.split('=', 1)
+            return val
+    return None
+
+try:
+    path = find_path(args)
+except ValueError:
+    sys.exit(1)
+
+try:
+    path = path.strip('"')
+    with open(path, 'wt') as fp:
+        fp.write(str(uuid.uuid4()))
+except IOError as e:
+    sys.exit(2)
