@@ -26,9 +26,12 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+from __future__ import absolute_import
 
 from collections import Iterable
 import os
+from six.moves import map
+from six.moves import range
 
 
 class _BaseContentType(object):
@@ -695,14 +698,14 @@ class NodeControlGroup(object):
 
     @property
     def children(self):
-        return self.children_map.values()
+        return list(self.children_map.values())
 
     @property
     def group_tasks(self):
         """All tasks in the hierarchy, affected by this group."""
         tasks = set()
         for node in walk_tree(self):
-            for ctrl in node.controllers.values():
+            for ctrl in list(node.controllers.values()):
                 tasks.update(ctrl.tasks)
         return tasks
 
@@ -710,7 +713,7 @@ class NodeControlGroup(object):
     def tasks(self):
         """Tasks in this exact group"""
         tasks = set()
-        for ctrl in self.controllers.values():
+        for ctrl in list(self.controllers.values()):
             tasks.update(ctrl.tasks)
         return tasks
 

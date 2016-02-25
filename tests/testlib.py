@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Copyright 2015-2016 Red Hat, Inc.
 #
@@ -74,7 +75,7 @@ def named_temp_dir(base=TEMPDIR):
 def make_conf(**kwargs):
     conf = convirt.config.current()
     conf.use_sudo = False  # hack for convenience
-    for k, v in kwargs.items():
+    for k, v in list(kwargs.items()):
         setattr(conf, k, v)
     return conf
 

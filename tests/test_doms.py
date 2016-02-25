@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Copyright 2015-2016 Red Hat, Inc.
 #
@@ -26,6 +27,7 @@ import convirt
 import convirt.doms
 
 from . import testlib
+from six.moves import range
 
 NUM = 5  # random low value
 

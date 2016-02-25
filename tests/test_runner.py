@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Copyright 2015-2016 Red Hat, Inc.
 #

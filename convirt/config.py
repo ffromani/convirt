@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Copyright 2016 Red Hat, Inc.
 #
@@ -95,5 +96,5 @@ def current():
 
 def setup(env):
     global _ENV
-    _ENV = Environment((k, v) for k, v in _ENV.items())
+    _ENV = Environment((k, v) for k, v in list(_ENV.items()))
     _ENV.update(env)

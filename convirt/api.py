@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Copyright 2016 Red Hat, Inc.
 #
@@ -31,7 +32,7 @@ def _available():
 
 def supported():
     runtimes = _available()
-    return frozenset(runtimes.keys())
+    return frozenset(list(runtimes.keys()))
 
 
 def create(rt, *args, **kwargs):

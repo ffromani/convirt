@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os.path
 from distutils.core import setup
 
@@ -34,6 +35,7 @@ setup(name='convirt',
       py_modules=[ 'cgview' ],
       install_requires=[
         "libvirt-python",
+        "six",
       ],
       classifiers = [
         'Classifier: Development Status :: 3 - Alpha',
