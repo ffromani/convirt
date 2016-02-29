@@ -83,6 +83,10 @@ class Domain(object):
         # TODO: raise warning to signal we ignore flags?
         return self._xmldesc
 
+    def controlInfo(self):
+        # TODO: do it better
+        return (libvirt.VIR_DOMAIN_CONTROL_OK, 0, 0)
+
 #    def blockInfo(self, path, flags):
 #        pass
 #
