@@ -96,6 +96,10 @@ class Domain(object):
 #    def info(self):
 #        pass
 
+    def vcpus(self):
+        # TODO: does this count as hack?
+        return []
+
     def _startup(self):
         self._log.debug('setting up container %s', self.UUIDString())
         self._rt.setup()
