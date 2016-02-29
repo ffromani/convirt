@@ -68,8 +68,8 @@ class Rkt(runtime.Base):
             '--uuid-file-save="%s"' % self._rkt_uuid_path,
             '--insecure-options=image',  # FIXME
             'run',
-            '--memory=%iM' % (self._run_conf.memory_size_mib),
             '%r' % image,
+            '--memory=%iM' % (self._run_conf.memory_size_mib),
         ]
         self._runner.start(cmd)
         with open(self._rkt_uuid_path, 'rt') as f:
