@@ -122,7 +122,8 @@ class Base(object):
             source = disk.find('./source/[@file]')
             if source is not None:
                 image_path = source.get('file')
-                self._log.debug('container %s found image path = [%s]',
-                                self._vm_uuid, image_path)
-                return image_path
-        raise ConfigError('image path')
+                if image_path:
+                    self._log.debug('container %s found image path = [%s]',
+                                    self._vm_uuid, image_path)
+                    return image_path
+        raise ConfigError('image path not found')
