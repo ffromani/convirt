@@ -119,11 +119,17 @@ class Base(object):
     def _find_image(self, xml_tree):
         disks = xml_tree.findall('.//disk[@type="file"]')
         for disk in disks:
+            # TODO: add in the findall() above?
+            device = disk.get('device')
+            if device != 'disk':
+                continue
             source = disk.find('./source/[@file]')
-            if source is not None:
-                image_path = source.get('file')
-                if image_path:
-                    self._log.debug('container %s found image path = [%s]',
-                                    self._vm_uuid, image_path)
-                    return image_path
+            if source is None:
+                continue
+            image_path = source.get('file')
+            if not image_path:
+                continue
+            self._log.debug('container %s found image path = [%s]',
+                            self._vm_uuid, image_path)
+            return image_path
         raise ConfigError('image path not found')
