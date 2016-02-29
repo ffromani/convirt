@@ -80,6 +80,37 @@ class DomainXMLTests(testlib.RunnableTestCase):
                                      _TEST_DOM_XML)
 
 
+class DomainAPITests(testlib.TestCase):
+
+    def test_reset(self):
+
+        class FakeRunner(object):
+            def __init__(self):
+                self.stopped = False
+                self.started = False
+
+            def start(self, *args, **kwargs):
+                self.started = True
+
+            def stop(self):
+                self.stopped = True
+
+        runners = []
+
+        def _fake_create(*args, **kwargs):
+            rt = FakeRunner()
+            runners.append(rt)
+            return rt
+
+        with monkey.patch_scope([(convirt.api, 'create', _fake_create)]):
+            dom = convirt.domain.Domain(testlib.minimal_dom_xml())
+            dom.reset(0)
+
+        self.assertEquals(len(runners), 1)
+        self.assertTrue(runners[0].started)
+        self.assertTrue(runners[0].stopped)
+
+
 class UnsupportedAPITests(testlib.RunnableTestCase):
 
     def test_migrate(self):
