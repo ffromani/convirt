@@ -68,8 +68,9 @@ class Connection(object):
 #    def domainListGetStats(self, doms, flags):
 #        pass
 #
-#    def createXML(self, domxml, flags):
-#        return domain.Domain(domxml)
+    def createXML(self, domxml, flags):
+        # flags are unused
+        return domain.Domain.create(domxml)
 
     def getLibVersion(self):
         return 0x001002018  # TODO
