@@ -47,13 +47,17 @@ class Domain(object):
         self._xmldesc = xmldesc
         self._root = ET.fromstring(xmldesc)
         self._vm_uuid = uuid.UUID(self._root.find('./uuid').text)
-        self._rt = api.create(self._root.find('./devices/emulator').text,
+        runtime = self._root.find('./devices/emulator').text
+        self._log.debug('initializing container %s with runtime %s',
+                        self.UUIDString(), runtime)
+        self._rt = api.create(runtime,
                               vm_uuid=self.UUIDString(),
                               conf=conf)
 
     def destroy(self):
         vm_uuid = self.UUIDString()
 
+        self._log.debug('shutting down container %s', vm_uuid)
         try:
             self._shutdown()
             doms.remove(vm_uuid)
@@ -63,8 +67,11 @@ class Domain(object):
             errors.throw()  # FIXME: specific error
 
     def reset(self, flags):
+        self._log.debug('resetting container %s', self.UUIDString())
         self._rt.stop()
+        self._log.debug('stopped container %s', self.UUIDString())
         self._rt.start()
+        self._log.debug('restarted container %s', self.UUIDString())
 
     def ID(self):
         return self._vm_uuid.int
@@ -86,13 +93,20 @@ class Domain(object):
 #        pass
 
     def _startup(self):
+        self._log.debug('setting up container %s', self.UUIDString())
         self._rt.setup()
+        self._log.debug('configuring container %s', self.UUIDString())
         self._rt.configure(self._root)
+        self._log.debug('starting container %s', self.UUIDString())
         self._rt.start()
+        self._log.debug('started container %s', self.UUIDString())
 
     def _shutdown(self):
+        self._log.debug('shutting down container %s', self.UUIDString())
         self._rt.stop()
+        self._log.debug('stopped container %s', self.UUIDString())
         self._rt.teardown()
+        self._log.debug('turn down container %s', self.UUIDString())
 
     def __getattr__(self, name):
         # virDomain does not expose non-callable attributes.

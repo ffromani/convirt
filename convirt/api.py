@@ -19,9 +19,13 @@ from __future__ import absolute_import
 # Refer to the README and COPYING files for full details of the license
 #
 
+import logging
 
 from . import rkt
 from . import runtime
+
+
+_log = logging.getLogger('convirt.api')
 
 
 def _available():
@@ -38,5 +42,6 @@ def supported():
 def create(rt, *args, **kwargs):
     runtimes = _available()
     if rt in runtimes:
+        _log.debug('creating container with runtime [%s]', rt)
         return runtimes[rt](*args, **kwargs)
     raise runtime.Unsupported(rt)

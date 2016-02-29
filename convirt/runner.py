@@ -19,7 +19,7 @@ from __future__ import absolute_import
 # Refer to the README and COPYING files for full details of the license
 #
 
-# TODO: logging
+import logging
 import os
 import os.path
 import subprocess
@@ -43,6 +43,8 @@ class OperationFailed(Exception):
 
 
 class Runner(object):
+
+    _log = logging.getLogger('convirt.runtime.Runner')
 
     def __init__(self, unit_name, conf=None):
         self._unit_name = unit_name
@@ -88,7 +90,9 @@ class Runner(object):
         if self._conf.use_sudo:
             command.append(_SUDO.cmd())
         command.extend(cmd)
+        self._log.debug('%s about to call [%s]', self._unit_name, cmd)
         rc = subprocess.check_call(command)
+        self._log.debug('%s called [%s] rc=%i', self._unit_name, cmd, rc)
         if rc != 0:
             raise OperationFailed()
 

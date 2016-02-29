@@ -20,6 +20,7 @@ from __future__ import absolute_import
 #
 
 import collections
+import logging
 import os
 import os.path
 
@@ -34,6 +35,8 @@ _RKT = command.Path('rkt')
 
 class Rkt(runtime.Base):
 
+    _log = logging.getLogger('convirt.runtime.Rkt')
+
     NAME = 'rkt'
 
     _PREFIX = 'rkt-'
@@ -47,6 +50,8 @@ class Rkt(runtime.Base):
         rkt_uuid_file = '%s.%s' % (self._vm_uuid, self.NAME)
         self._rkt_uuid_path = os.path.join(
             self._conf.run_dir, rkt_uuid_file)
+        self._log.debug('rkt container %s uuid_path=[%s]',
+                        self._vm_uuid, self._rkt_uuid_path)
         self._rkt_uuid = None
 
     @property
@@ -69,6 +74,8 @@ class Rkt(runtime.Base):
         self._runner.start(cmd)
         with open(self._rkt_uuid_path, 'rt') as f:
             self._rkt_uuid = f.read().strip()
+            self._log.info('rkt container %s rkt_uuid %s',
+                            self._vm_uuid, self._rkt_uuid)
 
     def stop(self):
         if not self.running:

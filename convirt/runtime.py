@@ -19,8 +19,8 @@ from __future__ import absolute_import
 # Refer to the README and COPYING files for full details of the license
 #
 
-# TODO: logging
 import collections
+import logging
 import os.path
 import subprocess
 
@@ -51,6 +51,8 @@ RunConfig = collections.namedtuple('RunConfig',
 
 class Base(object):
 
+    _log = logging.getLogger('convirt.runtime.Base')
+
     NAME = ''
 
     _PATH = _NULL
@@ -72,10 +74,13 @@ class Base(object):
         return "%s%s" % (runner.PREFIX, self._vm_uuid)
 
     def configure(self, xml_tree):
+        self._log.debug('configuring container %s', self._vm_uuid)
         mem = self._find_memory(xml_tree)
         path = self._find_image(xml_tree)
         # TODO: network
         self._run_conf = RunConfig(path, mem)
+        self._log.debug('configured container %s: %s',
+                        self._vm_uuid, self._run_conf)
 
     def start(self, target=None):
         raise NotImplementedError
@@ -105,7 +110,10 @@ class Base(object):
     def _find_memory(self, xml_tree):
         mem_node = xml_tree.find('./maxMemory')
         if mem_node is not None:
-            return int(mem_node.text)/1024
+            mem = int(mem_node.text)/1024
+            self._log.debug('container %s found memory = %i MiB',
+                            self._vm_uuid, mem)
+            return mem
         raise ConfigError('memory')
 
     def _find_image(self, xml_tree):
@@ -113,5 +121,8 @@ class Base(object):
         for disk in disks:
             source = disk.find('./source/[@file]')
             if source is not None:
-                return source.get('file')
+                image_path = source.get('file')
+                self._log.debug('container %s found image path = [%s]',
+                                self._vm_uuid, image_path)
+                return image_path
         raise ConfigError('image path')
