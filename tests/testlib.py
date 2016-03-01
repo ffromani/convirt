@@ -25,6 +25,7 @@ import tempfile
 import uuid
 import unittest
 
+import convirt.api
 import convirt.command
 import convirt.config
 
@@ -32,6 +33,7 @@ from . import monkey
 
 
 class TestCase(unittest.TestCase):
+
     def assertNotRaises(self, callableObj=None, *args, **kwargs):
         # This is required when any exception raised during the call should be
         # considered as a test failure.
@@ -92,7 +94,7 @@ def global_conf(**kwargs):
         convirt.config.setup(saved_conf)
 
 
-class RunnableTestCase(unittest.TestCase):
+class RunnableTestCase(TestCase):
 
     def setUp(self):
         self.guid = uuid.uuid4()
@@ -110,6 +112,31 @@ class RunnableTestCase(unittest.TestCase):
     def tearDown(self):
         self.patch.revert()
         shutil.rmtree(self.run_dir)
+
+
+class FakeRunnableTestCase(TestCase):
+
+    def setUp(self):
+        class FakeRunner(object):
+            def __init__(self):
+                self.stopped = False
+                self.started = False
+
+            def start(self, *args, **kwargs):
+                self.started = True
+
+            def stop(self):
+                self.stopped = True
+
+        self.runners = []
+
+        def _fake_create(*args, **kwargs):
+            rt = FakeRunner()
+            self.runners.append(rt)
+            return rt
+
+        with monkey.patch_scope([(convirt.api, 'create', _fake_create)]):
+            self.dom = convirt.domain.Domain(minimal_dom_xml())
 
 
 def minimal_dom_xml():

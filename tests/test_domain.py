@@ -80,35 +80,23 @@ class DomainXMLTests(testlib.RunnableTestCase):
                                      _TEST_DOM_XML)
 
 
-class DomainAPITests(testlib.TestCase):
+class DomainAPITests(testlib.FakeRunnableTestCase):
 
     def test_reset(self):
+        self.dom.reset(0)
 
-        class FakeRunner(object):
-            def __init__(self):
-                self.stopped = False
-                self.started = False
+        self.assertEquals(len(self.runners), 1)
+        self.assertTrue(self.runners[0].started)
+        self.assertTrue(self.runners[0].stopped)
 
-            def start(self, *args, **kwargs):
-                self.started = True
+    def test_controlInfo(self):
+        info = self.dom.controlInfo()
+        self.assertEquals(len(info), 3)
+        # TODO: more testing
 
-            def stop(self):
-                self.stopped = True
-
-        runners = []
-
-        def _fake_create(*args, **kwargs):
-            rt = FakeRunner()
-            runners.append(rt)
-            return rt
-
-        with monkey.patch_scope([(convirt.api, 'create', _fake_create)]):
-            dom = convirt.domain.Domain(testlib.minimal_dom_xml())
-            dom.reset(0)
-
-        self.assertEquals(len(runners), 1)
-        self.assertTrue(runners[0].started)
-        self.assertTrue(runners[0].stopped)
+    def test_vcpus(self):
+        # TODO: meaningful test
+        self.assertNotRaises(self.dom.vcpus)
 
 
 class UnsupportedAPITests(testlib.RunnableTestCase):

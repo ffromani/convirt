@@ -25,6 +25,7 @@ import libvirt
 import convirt
 
 
+from . import monkey
 from . import testlib
 
 
@@ -60,15 +61,12 @@ class OpenConnectionTests(testlib.TestCase):
         self.assertNotRaises(conn.close)
 
 
-class LibVersionTests(testlib.TestCase):
+class ConnectionAPITests(testlib.TestCase):
 
     def test_get_lib_version(self):
         conn = convirt.openAuth('convirt:///system', None)
         ver = conn.getLibVersion()
         self.assertGreater(ver, 0)
-
-
-class LookupTests(testlib.TestCase):
 
     def test_lookup_by_name_missing(self):
         conn = convirt.openAuth('convirt:///system', None)
@@ -89,3 +87,41 @@ class LookupTests(testlib.TestCase):
     def test_list_domains_id_none(self):
         conn = convirt.openAuth('convirt:///system', None)
         self.assertEquals(conn.listDomainsID(), [])
+
+    def test_createXML(self):
+        class FakeRunner(object):
+            def __init__(self):
+                self.stopped = False
+                self.started = False
+                self.setup_done = False
+                self.teardown_done = False
+                self.configured = False
+
+            def setup(self, *args, **kwargs):
+                self.setup_done = True
+
+            def teardown(self, *args, **kwargs):
+                self.teardown_done = True
+
+            def start(self, *args, **kwargs):
+                self.started = True
+
+            def stop(self):
+                self.stopped = True
+
+            def configure(self, *args, **kwargs):
+                self.configured = True
+
+        self.runners = []
+
+        def _fake_create(*args, **kwargs):
+            rt = FakeRunner()
+            self.runners.append(rt)
+            return rt
+
+        conn = convirt.openAuth('convirt:///system', None)
+        with monkey.patch_scope([(convirt.api, 'create', _fake_create)]):
+            dom = conn.createXML(testlib.minimal_dom_xml(), 0)
+
+        self.assertTrue(dom)
+        dom.destroy()
