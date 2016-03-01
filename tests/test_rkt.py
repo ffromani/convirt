@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 #
 # Copyright 2015-2016 Red Hat, Inc.
 #
@@ -18,7 +17,7 @@ from __future__ import absolute_import
 #
 # Refer to the README and COPYING files for full details of the license
 #
-
+from __future__ import absolute_import
 
 import uuid
 import unittest
@@ -27,6 +26,7 @@ import xml.etree.ElementTree as ET
 import convirt
 import convirt.rkt
 
+from . import monkey
 from . import testlib
 
 
@@ -86,3 +86,10 @@ class RktTests(testlib.RunnableTestCase):
         self.assertFalse(rkt.running)
         self.assertRaises(convirt.runner.OperationFailed, rkt.stop)
 
+    def test_commandline_unquoted(self):
+        rkt = convirt.rkt.Rkt(str(uuid.uuid4()),
+                              testlib.make_conf(run_dir=self.run_dir))
+        root = ET.fromstring(testlib.minimal_dom_xml())
+        rkt.configure(root)
+        for arg in rkt.command_line():
+            self.assertNotIn('"', arg)

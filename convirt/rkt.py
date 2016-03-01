@@ -62,20 +62,9 @@ class Rkt(runtime.Base):
         if self.running:
             raise runner.OperationFailed('already running')
 
-        image = self._run_conf.image_path if target is None else target
-        cmd = [
-            Rkt._PATH.cmd(),
-            '--uuid-file-save="%s"' % self._rkt_uuid_path,
-            '--insecure-options=image',  # FIXME
-            'run',
-            '%r' % image,
-            '--memory=%iM' % (self._run_conf.memory_size_mib),
-        ]
+        cmd = self.command_line(target)
         self._runner.start(cmd)
-        with open(self._rkt_uuid_path, 'rt') as f:
-            self._rkt_uuid = f.read().strip()
-            self._log.info('rkt container %s rkt_uuid %s',
-                            self._vm_uuid, self._rkt_uuid)
+        self._collect_rkt_uuid()
 
     def stop(self):
         if not self.running:
@@ -92,8 +81,26 @@ class Rkt(runtime.Base):
         except OSError:
             pass  # TODO
         self._rkt_uuid = None
-    
+
+    def command_line(self, target=None):
+        image = self._run_conf.image_path if target is None else target
+        cmd = [
+            Rkt._PATH.cmd(),
+            '--uuid-file-save=%s' % self._rkt_uuid_path,
+            '--insecure-options=image',  # FIXME
+            'run',
+            '%r' % image,
+            '--memory=%iM' % (self._run_conf.memory_size_mib),
+        ]
+        return cmd
+
     def runtime_name(self):
         if self._rkt_uuid is None:
             return None
         return '%s%s' % (self._PREFIX, self._rkt_uuid)
+
+    def _collect_rkt_uuid(self):
+        with open(self._rkt_uuid_path, 'rt') as f:
+            self._rkt_uuid = f.read().strip()
+            self._log.info('rkt container %s rkt_uuid %s',
+                            self._vm_uuid, self._rkt_uuid)

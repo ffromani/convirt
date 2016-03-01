@@ -131,5 +131,5 @@ class Base(object):
                 continue
             self._log.debug('container %s found image path = [%s]',
                             self._vm_uuid, image_path)
-            return image_path
+            return image_path.strip('"')
         raise ConfigError('image path not found')
