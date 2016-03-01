@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: convirt
-Version: 0.1.0
+Version: 0.1.1
 Summary: Run containers with the libvirt API
 Home-page: TODO
 Author: Francesco Romani
