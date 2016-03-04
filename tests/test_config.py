@@ -53,10 +53,15 @@ class ConfigTests(testlib.TestCase):
         self.assertEquals(convirt.config.current(), conf)
         self.assertFalse(convirt.config.current() is conf)
 
-    def test_mutate(self):
+    def test_setup(self):
         conf = convirt.config.current()
         conf.run_dir = '/run/convirt/random/dir'
         convirt.config.setup(conf)
+        self.assertEquals(convirt.config.current(), conf)
+        self.assertFalse(convirt.config.current() is conf)
+
+    def test_update(self):
+        conf = convirt.config.update(run_dir='/run/convirt/another/random/dir')
         self.assertEquals(convirt.config.current(), conf)
         self.assertFalse(convirt.config.current() is conf)
 

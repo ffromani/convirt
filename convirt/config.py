@@ -96,5 +96,14 @@ def current():
 
 def setup(env):
     global _ENV
-    _ENV = Environment((k, v) for k, v in list(_ENV.items()))
-    _ENV.update(env)
+    new_ENV = Environment((k, v) for k, v in list(_ENV.items()))
+    new_ENV.update(env)
+    _ENV = new_ENV
+
+
+def update(**kwargs):
+    global _ENV
+    new_ENV = Environment((k, v) for k, v in list(_ENV.items()))
+    new_ENV.update(kwargs)
+    _ENV = new_ENV
+    return new_ENV
