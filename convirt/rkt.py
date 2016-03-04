@@ -94,7 +94,7 @@ class Rkt(runtime.Base):
             '--uuid-file-save=%s' % self._rkt_uuid_path,
             '--insecure-options=image',  # FIXME
             'run',
-            '%r' % image,
+            '%s' % image,
             '--memory=%iM' % (self._run_conf.memory_size_mib),
         ]
         return cmd
