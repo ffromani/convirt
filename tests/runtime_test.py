@@ -241,3 +241,32 @@ class RuntimeBaseConfigureTests(testlib.TestCase):
         self.assertNotRaises(self.base.configure, root)
         conf = self.base.runtime_config
         self.assertTrue(conf.image_path)
+
+
+class RMFileTests(testlib.TestCase):
+
+    def test_rm_file_once(self):
+        with testlib.named_temp_dir() as tmp_dir:
+            path = os.path.join(tmp_dir, "foobar")
+            with open(path, 'wt') as f:
+                f.write('%s\n' % str(uuid.uuid4()))
+            self.assertEquals(os.listdir(tmp_dir), ['foobar'])
+            convirt.runtime.rm_file(path)
+            self.assertEquals(os.listdir(tmp_dir), [])
+
+    def test_rm_file_twice(self):
+        with testlib.named_temp_dir() as tmp_dir:
+            path = os.path.join(tmp_dir, "foobar")
+            with open(path, 'wt') as f:
+                f.write('%s\n' % str(uuid.uuid4()))
+            self.assertEquals(os.listdir(tmp_dir), ['foobar'])
+            convirt.runtime.rm_file(path)
+            self.assertEquals(os.listdir(tmp_dir), [])
+            self.assertNotRaises(convirt.runtime.rm_file, path)
+            self.assertEquals(os.listdir(tmp_dir), [])
+
+    def test_rm_file_fails(self):
+        self.assertNotEqual(os.geteuid(), 0)
+        self.assertRaises(OSError,
+                          convirt.runtime.rm_file,
+                          '/var/log/lastlog')
