@@ -70,7 +70,7 @@ class Rkt(runtime.Base):
         cmd = self.command_line(target)
         runtime.rm_file(self._rkt_uuid_path)
         self._runner.start(cmd)
-        self._collect_rkt_uuid()
+        self._collect_rkt_uuid(self._rkt_uuid_path)
 
     def stop(self):
         if not self.running:
@@ -105,10 +105,10 @@ class Rkt(runtime.Base):
             return None
         return '%s%s' % (self._PREFIX, self._rkt_uuid)
 
-    def _collect_rkt_uuid(self):
+    def _collect_rkt_uuid(self, path):
         for i in range(self._TRIES):
             try:
-                self._read_rkt_uuid()
+                self._read_rkt_uuid(path)
             except IOError:
                 self._log.debug('reading rkt UUID: try %i/%i failed',
                                 i+1, self._TRIES)
@@ -119,8 +119,8 @@ class Rkt(runtime.Base):
                 return
         raise runner.OperationFailed('failed to read rkt UUID')
 
-    def _read_rkt_uuid(self):
-        with open(self._rkt_uuid_path, 'rt') as f:
+    def _read_rkt_uuid(self, path):
+        with open(path, 'rt') as f:
             self._rkt_uuid = f.read().strip()
             self._log.info('rkt container %s rkt_uuid %s',
                             self._vm_uuid, self._rkt_uuid)
