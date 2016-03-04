@@ -54,7 +54,8 @@ class Domain(object):
                               vm_uuid=self.UUIDString(),
                               conf=conf)
 
-    def destroy(self):
+    def destroyFlags(self, flags):
+        #  flags are unused
         vm_uuid = self.UUIDString()
 
         self._log.debug('shutting down container %s', vm_uuid)
@@ -65,6 +66,9 @@ class Domain(object):
             errors.throw()  # FIXME: specific error
         except KeyError:
             errors.throw()  # FIXME: specific error
+
+    def destroy(self):
+        return self.destroyFlags(0)
 
     def reset(self, flags):
         self._log.debug('resetting container %s', self.UUIDString())
