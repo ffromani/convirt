@@ -23,6 +23,7 @@ import collections
 import logging
 import os.path
 import subprocess
+import time
 
 from . import command
 from . import config
@@ -71,7 +72,9 @@ class Base(object):
         self._runner = runner.Runner(self.unit_name(), self._conf)
 
     def unit_name(self):
-        return "%s%s" % (runner.PREFIX, self._vm_uuid)
+        return "%s%s-%s" % (
+            runner.PREFIX, self._vm_uuid, '%x' % int(time.time())
+        )
 
     def configure(self, xml_tree):
         self._log.debug('configuring container %s', self._vm_uuid)
