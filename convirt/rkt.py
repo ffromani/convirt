@@ -68,6 +68,7 @@ class Rkt(runtime.Base):
             raise runner.OperationFailed('already running')
 
         cmd = self.command_line(target)
+        runtime.rm_file(self._rkt_uuid_path)
         self._runner.start(cmd)
         self._collect_rkt_uuid()
 

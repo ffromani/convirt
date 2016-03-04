@@ -20,7 +20,9 @@ from __future__ import absolute_import
 #
 
 import collections
+import errno
 import logging
+import os
 import os.path
 import subprocess
 import time
@@ -136,3 +138,15 @@ class Base(object):
                             self._vm_uuid, image_path)
             return image_path.strip('"')
         raise ConfigError('image path not found')
+
+
+
+def rm_file(target):
+    try:
+        os.unlink(target)
+    except OSError as e:
+        if e.errno == errno.ENOENT:
+            logging.warning("file %r already removed", target)
+        else:
+            logging.exception("removing file %r failed", target)
+            raise
