@@ -23,6 +23,7 @@ import collections
 import logging
 import os
 import os.path
+import time
 
 from . import command
 from . import runner
@@ -44,6 +45,10 @@ class Rkt(runtime.Base):
     _RKT_UUID_FILE = 'rkt_uuid'
 
     _PATH = _RKT
+
+    _TRIES = 10  # TODO: make config item?
+
+    _DELAY = 1  # seconds  TODO: make config item?
 
     def __init__(self, vm_uuid, conf=None):
         super(Rkt, self).__init__(vm_uuid, conf)
@@ -100,6 +105,20 @@ class Rkt(runtime.Base):
         return '%s%s' % (self._PREFIX, self._rkt_uuid)
 
     def _collect_rkt_uuid(self):
+        for i in range(self._TRIES):
+            try:
+                self._read_rkt_uuid()
+            except IOError:
+                self._log.debug('reading rkt UUID: try %i/%i failed',
+                                i+1, self._TRIES)
+                time.sleep(self._DELAY)
+            else:
+                self._log.info('read rkt UUID at try %i/%i',
+                                i+1, self._TRIES)
+                return
+        raise runner.OperationFailed('failed to read rkt UUID')
+
+    def _read_rkt_uuid(self):
         with open(self._rkt_uuid_path, 'rt') as f:
             self._rkt_uuid = f.read().strip()
             self._log.info('rkt container %s rkt_uuid %s',
