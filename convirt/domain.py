@@ -20,6 +20,7 @@ from __future__ import absolute_import
 #
 
 import logging
+import os.path
 import uuid
 import xml.etree.ElementTree as ET
 
@@ -30,6 +31,7 @@ from . import api
 from . import errors
 from . import doms
 from . import runner
+from . import xmlfile
 
 
 class Domain(object):
@@ -53,6 +55,7 @@ class Domain(object):
         self._rt = api.create(runtime,
                               vm_uuid=self.UUIDString(),
                               conf=conf)
+        self._xml_file = xmlfile.XMLFile(self._vm_uuid, conf)
 
     def destroyFlags(self, flags):
         #  flags are unused
@@ -105,10 +108,14 @@ class Domain(object):
         return [[], []]
 
     def _startup(self):
+        self._log.debug('clearing XML cache for %s', self.UUIDString())
+        self._xml_file.clear()
         self._log.debug('setting up container %s', self.UUIDString())
         self._rt.setup()
         self._log.debug('configuring container %s', self.UUIDString())
         self._rt.configure(self._root)
+        self._log.debug('saving domain XML for %s', self.UUIDString())
+        self._xml_file.save(self._root)
         self._log.debug('starting container %s', self.UUIDString())
         self._rt.start()
         self._log.debug('started container %s', self.UUIDString())
@@ -118,6 +125,7 @@ class Domain(object):
         self._rt.stop()
         self._log.debug('stopped container %s', self.UUIDString())
         self._rt.teardown()
+        self._xml_file.clear()
         self._log.debug('turn down container %s', self.UUIDString())
 
     def __getattr__(self, name):

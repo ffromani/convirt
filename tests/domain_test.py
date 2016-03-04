@@ -51,7 +51,8 @@ class DomainIdsTests(testlib.RunnableTestCase):
         </domain>
         """
         self.dom = convirt.domain.Domain(
-            self.xmldesc % str(self.guid)
+            self.xmldesc % str(self.guid),
+            convirt.config.current()
         )
 
     def test_ID(self):
@@ -65,13 +66,15 @@ class DomainXMLTests(testlib.RunnableTestCase):
 
     def test_XMLDesc(self):
         dom_xml = testlib.minimal_dom_xml()
-        dom = convirt.domain.Domain(dom_xml)
+        dom = convirt.domain.Domain(dom_xml,
+                                    convirt.config.current())
         self.assertEqual(dom.XMLDesc(0), dom_xml)
 
     def test_XMLDesc_ignore_flags(self):
         # TODO: provide XML to exercise all the features.
         _TEST_DOM_XML = testlib.minimal_dom_xml()
-        dom = convirt.domain.Domain(_TEST_DOM_XML)
+        dom = convirt.domain.Domain(_TEST_DOM_XML,
+                                    convirt.config.current())
         self.assertEqual(dom.XMLDesc(libvirt.VIR_DOMAIN_XML_SECURE),
                                      _TEST_DOM_XML)
         self.assertEqual(dom.XMLDesc(libvirt.VIR_DOMAIN_XML_INACTIVE),
@@ -102,7 +105,8 @@ class DomainAPITests(testlib.FakeRunnableTestCase):
 class UnsupportedAPITests(testlib.RunnableTestCase):
 
     def test_migrate(self):
-        dom = convirt.domain.Domain(testlib.minimal_dom_xml())
+        dom = convirt.domain.Domain(testlib.minimal_dom_xml(),
+                                    convirt.config.current())
         self.assertRaises(libvirt.libvirtError,
                           dom.migrate,
                           {})

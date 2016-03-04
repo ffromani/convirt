@@ -136,7 +136,8 @@ class FakeRunnableTestCase(TestCase):
             return rt
 
         with monkey.patch_scope([(convirt.api, 'create', _fake_create)]):
-            self.dom = convirt.domain.Domain(minimal_dom_xml())
+            self.dom = convirt.domain.Domain(minimal_dom_xml(),
+                                             convirt.config.current())
 
 
 def minimal_dom_xml():
