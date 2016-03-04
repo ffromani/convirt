@@ -65,18 +65,7 @@ class Runner(object):
         self._running = False
 
     def start(self, *args):
-        cmd = [
-            _SYSTEMD_RUN.cmd(),
-            '--unit="%s"' % self._unit_name,
-            '--slice=%s' % self._conf.cgroup_slice,
-            '--property=CPUAccounting=1',
-            '--property=MemoryAccounting=1',
-            '--property=BlockIOAccounting=1',
-        ]
-        if self._conf.uid is not None:
-            cmd.append('--uid=%i' % self._conf.uid)
-        if self._conf.gid is not None:
-            cmd.append('--gid=%i' % self._conf.gid)
+        cmd = self.command_line()
         cmd.extend(*args)
         self.call(cmd)
         self._running = True
@@ -84,6 +73,22 @@ class Runner(object):
     @staticmethod
     def stats():
         return []  # TODO
+
+    def command_line(self):
+        cmd = [_SYSTEMD_RUN.cmd()]
+        if self._unit_name is not None:
+            cmd.append('--unit=%s' % self._unit_name)
+        cmd.extend([
+            '--slice=%s' % self._conf.cgroup_slice,
+            '--property=CPUAccounting=1',
+            '--property=MemoryAccounting=1',
+            '--property=BlockIOAccounting=1',
+        ])
+        if self._conf.uid is not None:
+            cmd.append('--uid=%i' % self._conf.uid)
+        if self._conf.gid is not None:
+            cmd.append('--gid=%i' % self._conf.gid)
+        return cmd
 
     def call(self, cmd):
         command = []
