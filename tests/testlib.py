@@ -140,7 +140,8 @@ class FakeRunnableTestCase(TestCase):
                                              convirt.config.current())
 
 
-def minimal_dom_xml():
+def minimal_dom_xml(vm_uuid=None):
+    vm_uuid = str(uuid.uuid4()) if vm_uuid is None else vm_uuid
     return """<?xml version="1.0" encoding="utf-8"?>
 <domain type="kvm" xmlns:ovirt="http://ovirt.org/vm/tune/1.0">
   <name>testVm</name>
@@ -161,4 +162,4 @@ def minimal_dom_xml():
     </disk>
   </devices>
 </domain>
-""".format(vm_uuid=str(uuid.uuid4()))
+""".format(vm_uuid=vm_uuid)

@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 #
 # Copyright 2015-2016 Red Hat, Inc.
 #
@@ -18,6 +17,7 @@ from __future__ import absolute_import
 #
 # Refer to the README and COPYING files for full details of the license
 #
+from __future__ import absolute_import
 
 import logging
 import os.path
@@ -28,6 +28,7 @@ import libvirt
 
 
 from . import api
+from . import config
 from . import errors
 from . import doms
 from . import runner
@@ -40,8 +41,18 @@ class Domain(object):
 
     @classmethod
     def create(cls, xmldesc, conf=None):
-        inst = cls(xmldesc, conf)
+        cfg = conf if conf is not None else config.current()
+        inst = cls(xmldesc, cfg)
         inst._startup()
+        doms.add(inst)
+        return inst
+
+    @classmethod
+    def recover(cls, vm_uuid, xmldesc, conf=None):
+        cfg = conf if conf is not None else config.current()
+        inst = cls(xmldesc, cfg)
+        if vm_uuid != inst.UUIDString():
+            raise RuntimeError("UUID mismatch")  # FIXME
         doms.add(inst)
         return inst
 

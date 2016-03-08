@@ -24,9 +24,12 @@ import uuid
 
 import libvirt
 
+from . import config
 from . import domain
 from . import doms
 from . import errors
+from . import runner
+from . import xmlfile
 
 
 class Connection(object):
@@ -44,7 +47,7 @@ class Connection(object):
 #    def domainEventRegisterAny(self, dom, eventID, cb, opaque):
 #        pass
 
-    def listAllDomains(self, flags):
+    def listAllDomains(self, flags=0):
         # flags are unused
         return doms.get_all()
 
@@ -74,6 +77,17 @@ class Connection(object):
 
     def getLibVersion(self):
         return 0x001002018  # TODO
+
+    def recoveryAllDomains(self):
+        conf = config.current()
+        for vm_uuid in runner.get_all():
+            xml_file = xmlfile.XMLFile(vm_uuid, conf)
+            try:
+                domain.Domain.recover(vm_uuid, xml_file.read(), conf)
+            except Exception:  # FIXME: too coarse
+                self._log.exception('failed to recover container %r',
+                                    vm_uuid)
+        return doms.get_all()
 
     def __getattr__(self, name):
         # virConnect does not expose non-callable attributes.

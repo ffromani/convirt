@@ -26,6 +26,7 @@ import unittest
 import libvirt
 
 import convirt
+import convirt.api
 import convirt.command
 import convirt.domain
 import convirt.doms
@@ -143,3 +144,77 @@ class RegistrationTests(testlib.RunnableTestCase):
 
         convirt.doms.remove(dom.UUIDString())
         self.assertRaises(libvirt.libvirtError, dom.destroy)
+
+
+class RecoveryTests(testlib.TestCase):
+
+    def setUp(self):
+        convirt.doms.clear()
+
+    def test_recover_mismatching_uuids(self):
+        vm_uuid = str(uuid.uuid4())
+
+        with testlib.named_temp_dir() as tmp_dir:
+            conf = testlib.make_conf(run_dir=tmp_dir)
+            with monkey.patch_scope([(convirt.api, 'create',
+                                      self._fake_create)]):
+                self.assertRaises(RuntimeError,  # TODO
+                                  convirt.domain.Domain.recover,
+                                  vm_uuid,
+                                  testlib.minimal_dom_xml(),
+                                  conf)
+
+    def test_recover(self):
+        vm_uuid = str(uuid.uuid4())
+
+        def _fake_create(rt, *args, **kwargs):
+            return FailingRuntime()
+
+        with testlib.named_temp_dir() as tmp_dir:
+            conf = testlib.make_conf(run_dir=tmp_dir)
+            with monkey.patch_scope([(convirt.api, 'create',
+                                      self._fake_create)]):
+                dom = convirt.domain.Domain.recover(
+                    vm_uuid, testlib.minimal_dom_xml(vm_uuid), conf)
+
+        existing_doms = convirt.doms.get_all()
+        self.assertEquals(len(existing_doms), 1)
+        self.assertEquals(existing_doms[0].UUIDString(), vm_uuid)
+
+    def _fake_create(self, rt, *args, **kwargs):
+        return FailingRuntime()
+
+
+class FailingRuntime(object):
+
+    @classmethod
+    def available(cls):
+        return True
+
+    def unit_name(self):
+        raise AssertionError("should not be called")
+
+    def configure(self, xml_tree):
+        raise AssertionError("should not be called")
+
+    def start(self, target=None):
+        raise AssertionError("should not be called")
+
+    def stop(self):
+        raise AssertionError("should not be called")
+
+    def status(self):
+        raise AssertionError("should not be called")
+
+    def runtime_name(self):
+        raise AssertionError("should not be called")
+
+    def setup(self):
+        raise AssertionError("should not be called")
+
+    def teardown(self):
+        raise AssertionError("should not be called")
+
+    @property
+    def runtime_config(self):
+        raise AssertionError("should not be called")
