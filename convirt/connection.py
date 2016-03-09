@@ -81,12 +81,15 @@ class Connection(object):
     def recoveryAllDomains(self):
         conf = config.current()
         for vm_uuid in runner.get_all():
+            self._log.debug('trying to recover container %r', vm_uuid)
             xml_file = xmlfile.XMLFile(vm_uuid, conf)
             try:
                 domain.Domain.recover(vm_uuid, xml_file.read(), conf)
             except Exception:  # FIXME: too coarse
                 self._log.exception('failed to recover container %r',
                                     vm_uuid)
+            else:
+                self._log.debug('recovered container %r', vm_uuid)
         return doms.get_all()
 
     def __getattr__(self, name):
