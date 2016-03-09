@@ -124,17 +124,6 @@ class ConnectionAPITests(testlib.TestCase):
         def _fake_get_all():
             yield vm_uuid
 
-        class FakeRunner(object):
-            def __init__(self):
-                self.stopped = False
-                self.started = False
-
-            def start(self, *args, **kwargs):
-                self.started = True
-
-            def stop(self):
-                self.stopped = True
-
         def _fake_create(*args, **kwargs):
             return FakeRunner()
 
