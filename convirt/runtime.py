@@ -68,9 +68,12 @@ class Base(object):
         except command.NotFound:
             return False
 
-    def __init__(self, conf):
+    def __init__(self, conf, rt_uuid=None):
         self._conf = conf
-        self._uuid = uuid.uuid4()
+        self._uuid = (
+            uuid.uuid4() if rt_uuid is None else
+            uuid.UUID(rt_uuid)
+        )
         self._run_conf = None
         self._runner = runner.Runner(self.unit_name(), self._conf)
 

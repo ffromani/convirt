@@ -50,8 +50,8 @@ class Rkt(runtime.Base):
 
     _DELAY = 1  # seconds  TODO: make config item?
 
-    def __init__(self, conf):
-        super(Rkt, self).__init__(conf)
+    def __init__(self, conf, rt_uuid=None):
+        super(Rkt, self).__init__(conf, rt_uuid)
         rkt_uuid_file = '%s.%s' % (self._uuid, self.NAME)
         self._rkt_uuid_path = os.path.join(
             self._conf.run_dir, rkt_uuid_file)

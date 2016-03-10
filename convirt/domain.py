@@ -48,22 +48,20 @@ class Domain(object):
         return inst
 
     @classmethod
-    def recover(cls, vm_uuid, xmldesc, conf=None):
+    def recover(cls, rt_uuid, xmldesc, conf=None):
         cfg = conf if conf is not None else config.current()
-        inst = cls(xmldesc, cfg)
-        if vm_uuid != inst.UUIDString():
-            raise RuntimeError("UUID mismatch")  # FIXME
+        inst = cls(xmldesc, cfg, rt_uuid=rt_uuid)
         doms.add(inst)
         return inst
 
-    def __init__(self, xmldesc, conf=None):
+    def __init__(self, xmldesc, conf=None, rt_uuid=None):
         self._xmldesc = xmldesc
         self._root = ET.fromstring(xmldesc)
         self._vm_uuid = uuid.UUID(self._root.find('./uuid').text)
         runtime = self._root.find('./devices/emulator').text
         self._log.debug('initializing %r container %r',
                         runtime, self.UUIDString())
-        self._rt = api.create(runtime, conf=conf)
+        self._rt = api.create(runtime, conf=conf, rt_uuid=rt_uuid)
         self._xml_file = xmlfile.XMLFile(self._rt.uuid, conf)
         self._log.debug('initializing container %r runtime %r',
                         self.UUIDString(), self._rt.uuid)
