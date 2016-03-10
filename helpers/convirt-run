@@ -1,4 +1,0 @@
-#!/bin/sh
-UUID="$1"
-shift 1
-exec /bin/systemd-run --unit="convirt-${UUID}" --uid=vdsm --gid=kvm $*

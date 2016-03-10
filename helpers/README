@@ -1,4 +1,0 @@
-systemd 219 (CentOS 7.x) does not provide all the facilities we
-need. They are available from systemd 222 (Fedora 23).
-Hence, we need additional helper scripts and configuration;
-Having helper scripts also helps minimizing the sudo configuration.
