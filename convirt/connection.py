@@ -55,10 +55,14 @@ class Connection(object):
         return [dom.ID() for dom in doms.get_all()]
 
     def lookupByUUIDString(self, guid):
+        self._log.debug('looking for container %r', guid)
         try:
-            return doms.get_by_uuid(guid)
+            dom = doms.get_by_uuid(guid)
         except KeyError:
             errors.throw(code=libvirt.VIR_ERR_NO_DOMAIN)
+        else:
+            self._log.debug('found container %r', guid)
+            return dom
 
     def lookupByID(self, intid):
         # hack?
