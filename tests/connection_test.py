@@ -67,9 +67,10 @@ class OpenConnectionTests(testlib.TestCase):
         self.assertNotRaises(conn.close)
 
 
-class ConnectionAPITests(testlib.TestCase):
+class ConnectionAPITests(testlib.FakeRunnableTestCase):
 
     def setUp(self):
+        super(ConnectionAPITests, self).setUp()
         convirt.doms.clear()
 
     def tearDown(self):
@@ -91,6 +92,13 @@ class ConnectionAPITests(testlib.TestCase):
         self.assertRaises(libvirt.libvirtError,
                           conn.lookupByID,
                           42)
+
+    def test_lookup_by_uuid_string(self):
+        convirt.doms.add(self.dom)
+        conn = convirt.openAuth('convirt:///system', None)
+        guid = self.dom.UUIDString()
+        dom = conn.lookupByUUIDString(guid)
+        self.assertEquals(dom.UUIDString(), guid)
 
     def test_list_all_domains_none(self):
         conn = convirt.openAuth('convirt:///system', None)

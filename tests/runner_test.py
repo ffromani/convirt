@@ -77,6 +77,14 @@ foobar.service                                                                  
         names = list(convirt.runner._parse_systemctl_list_units(output))
         self.assertEqual(names, [])
 
+    def test__parse_systemctl_corrupted_output(self):
+        output = \
+"""
+foobar.service    somehow messed
+"""
+        names = list(convirt.runner._parse_systemctl_list_units(output))
+        self.assertEqual(names, [])
+
     def test__parse_systemctl_no_services(self):
         output = \
 """

@@ -75,6 +75,9 @@ class RuntimeBaseAPITests(testlib.TestCase):
     def test_start(self):
         self.assertRaises(NotImplementedError, self.base.start, '')
 
+    def test_resync(self):
+        self.assertRaises(NotImplementedError, self.base.resync)
+
     def test_stop(self):
         self.assertRaises(NotImplementedError, self.base.stop)
 

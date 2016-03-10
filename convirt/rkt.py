@@ -70,7 +70,7 @@ class Rkt(runtime.Base):
         cmd = self.command_line(target)
         runtime.rm_file(self._rkt_uuid_path)
         self._runner.start(cmd)
-        self._collect_rkt_uuid(self._rkt_uuid_path)
+        self.resync()
 
     def resync(self):
         self._collect_rkt_uuid(self._rkt_uuid_path)
