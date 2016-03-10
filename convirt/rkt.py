@@ -55,7 +55,7 @@ class Rkt(runtime.Base):
         rkt_uuid_file = '%s.%s' % (self._uuid, self.NAME)
         self._rkt_uuid_path = os.path.join(
             self._conf.run_dir, rkt_uuid_file)
-        self._log.debug('rkt container %s uuid_path=[%s]',
+        self._log.debug('rkt runtime %s uuid_path=[%s]',
                         self._uuid, self._rkt_uuid_path)
         self._rkt_uuid = None
 
@@ -110,7 +110,7 @@ class Rkt(runtime.Base):
             try:
                 self._read_rkt_uuid(path)
             except IOError:
-                self._log.debug('reading rkt UUID: try %i/%i failed',
+                self._log.debug('rkt runtime read UUID: try %i/%i failed',
                                 i+1, self._TRIES)
                 time.sleep(self._DELAY)
             else:

@@ -61,18 +61,18 @@ class Domain(object):
         self._root = ET.fromstring(xmldesc)
         self._vm_uuid = uuid.UUID(self._root.find('./uuid').text)
         runtime = self._root.find('./devices/emulator').text
-        self._log.debug('initializing container %s with runtime %s',
-                        self.UUIDString(), runtime)
+        self._log.debug('initializing %r container %r',
+                        runtime, self.UUIDString())
         self._rt = api.create(runtime, conf=conf)
-        self._xml_file = xmlfile.XMLFile(self._vm_uuid, conf)
-        self._log.debug('initializing container %s runtime %s',
+        self._xml_file = xmlfile.XMLFile(self._rt.uuid, conf)
+        self._log.debug('initializing container %r runtime %r',
                         self.UUIDString(), self._rt.uuid)
 
     def destroyFlags(self, flags):
         #  flags are unused
         vm_uuid = self.UUIDString()
 
-        self._log.debug('shutting down container %s', vm_uuid)
+        self._log.debug('shutting down container %r', vm_uuid)
         try:
             self._shutdown()
             doms.remove(vm_uuid)
@@ -85,11 +85,11 @@ class Domain(object):
         return self.destroyFlags(0)
 
     def reset(self, flags):
-        self._log.debug('resetting container %s', self.UUIDString())
+        self._log.debug('resetting container %r', self.UUIDString())
         self._rt.stop()
-        self._log.debug('stopped container %s', self.UUIDString())
+        self._log.debug('stopped container %r', self.UUIDString())
         self._rt.start()
-        self._log.debug('restarted container %s', self.UUIDString())
+        self._log.debug('restarted container %r', self.UUIDString())
 
     def ID(self):
         return self._vm_uuid.int
@@ -119,25 +119,25 @@ class Domain(object):
         return [[], []]
 
     def _startup(self):
-        self._log.debug('clearing XML cache for %s', self.UUIDString())
+        self._log.debug('clearing XML cache for %r', self.UUIDString())
         self._xml_file.clear()
-        self._log.debug('setting up container %s', self.UUIDString())
+        self._log.debug('setting up container %r', self.UUIDString())
         self._rt.setup()
-        self._log.debug('configuring container %s', self.UUIDString())
+        self._log.debug('configuring container %r', self.UUIDString())
         self._rt.configure(self._root)
-        self._log.debug('saving domain XML for %s', self.UUIDString())
+        self._log.debug('saving domain XML for %r', self.UUIDString())
         self._xml_file.save(self._root)
-        self._log.debug('starting container %s', self.UUIDString())
+        self._log.debug('starting container %r', self.UUIDString())
         self._rt.start()
-        self._log.debug('started container %s', self.UUIDString())
+        self._log.debug('started container %r', self.UUIDString())
 
     def _shutdown(self):
-        self._log.debug('shutting down container %s', self.UUIDString())
+        self._log.debug('shutting down container %r', self.UUIDString())
         self._rt.stop()
-        self._log.debug('stopped container %s', self.UUIDString())
+        self._log.debug('stopped container %r', self.UUIDString())
         self._rt.teardown()
         self._xml_file.clear()
-        self._log.debug('turn down container %s', self.UUIDString())
+        self._log.debug('turn down container %r', self.UUIDString())
 
     def __getattr__(self, name):
         # virDomain does not expose non-callable attributes.

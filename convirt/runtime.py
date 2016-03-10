@@ -82,12 +82,12 @@ class Base(object):
         return "%s%s" % (runner.PREFIX, self.uuid)
 
     def configure(self, xml_tree):
-        self._log.debug('configuring container %s', self.uuid)
+        self._log.debug('configuring runtime %r', self.uuid)
         mem = self._find_memory(xml_tree)
         path = self._find_image(xml_tree)
         # TODO: network
         self._run_conf = RunConfig(path, mem)
-        self._log.debug('configured container %s: %s',
+        self._log.debug('configured runtime %s: %s',
                         self.uuid, self._run_conf)
 
     def start(self, target=None):
@@ -119,7 +119,7 @@ class Base(object):
         mem_node = xml_tree.find('./maxMemory')
         if mem_node is not None:
             mem = int(mem_node.text)/1024
-            self._log.debug('container %s found memory = %i MiB',
+            self._log.debug('runtime %r found memory = %i MiB',
                             self.uuid, mem)
             return mem
         raise ConfigError('memory')
@@ -137,7 +137,7 @@ class Base(object):
             image_path = source.get('file')
             if not image_path:
                 continue
-            self._log.debug('container %s found image path = [%s]',
+            self._log.debug('runtime %r found image path = [%s]',
                             self.uuid, image_path)
             return image_path.strip('"')
         raise ConfigError('image path not found')
