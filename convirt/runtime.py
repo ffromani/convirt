@@ -26,6 +26,7 @@ import os
 import os.path
 import subprocess
 import time
+import uuid
 
 from . import command
 from . import config
@@ -67,25 +68,27 @@ class Base(object):
         except command.NotFound:
             return False
 
-    def __init__(self, vm_uuid, conf=None):
-        self._vm_uuid = vm_uuid
-        self._conf = config.current() if conf is None else conf
+    def __init__(self, conf):
+        self._conf = conf
+        self._uuid = uuid.uuid4()
         self._run_conf = None
         self._runner = runner.Runner(self.unit_name(), self._conf)
 
+    @property
+    def uuid(self):
+        return str(self._uuid)
+
     def unit_name(self):
-        return "%s%s-%s" % (
-            runner.PREFIX, self._vm_uuid, '%x' % int(time.time())
-        )
+        return "%s%s" % (runner.PREFIX, self.uuid)
 
     def configure(self, xml_tree):
-        self._log.debug('configuring container %s', self._vm_uuid)
+        self._log.debug('configuring container %s', self.uuid)
         mem = self._find_memory(xml_tree)
         path = self._find_image(xml_tree)
         # TODO: network
         self._run_conf = RunConfig(path, mem)
         self._log.debug('configured container %s: %s',
-                        self._vm_uuid, self._run_conf)
+                        self.uuid, self._run_conf)
 
     def start(self, target=None):
         raise NotImplementedError
@@ -117,7 +120,7 @@ class Base(object):
         if mem_node is not None:
             mem = int(mem_node.text)/1024
             self._log.debug('container %s found memory = %i MiB',
-                            self._vm_uuid, mem)
+                            self.uuid, mem)
             return mem
         raise ConfigError('memory')
 
@@ -135,7 +138,7 @@ class Base(object):
             if not image_path:
                 continue
             self._log.debug('container %s found image path = [%s]',
-                            self._vm_uuid, image_path)
+                            self.uuid, image_path)
             return image_path.strip('"')
         raise ConfigError('image path not found')
 

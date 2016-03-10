@@ -117,17 +117,6 @@ class RunnableTestCase(TestCase):
 class FakeRunnableTestCase(TestCase):
 
     def setUp(self):
-        class FakeRunner(object):
-            def __init__(self):
-                self.stopped = False
-                self.started = False
-
-            def start(self, *args, **kwargs):
-                self.started = True
-
-            def stop(self):
-                self.stopped = True
-
         self.runners = []
 
         def _fake_create(*args, **kwargs):
@@ -138,6 +127,31 @@ class FakeRunnableTestCase(TestCase):
         with monkey.patch_scope([(convirt.api, 'create', _fake_create)]):
             self.dom = convirt.domain.Domain(minimal_dom_xml(),
                                              convirt.config.current())
+
+
+class FakeRunner(object):
+    def __init__(self):
+        self.stopped = False
+        self.started = False
+        self.setup_done = False
+        self.teardown_done = False
+        self.configured = False
+        self.uuid = '00000000-0000-0000-0000-000000000000'
+
+    def setup(self, *args, **kwargs):
+        self.setup_done = True
+
+    def teardown(self, *args, **kwargs):
+        self.teardown_done = True
+
+    def start(self, *args, **kwargs):
+        self.started = True
+
+    def stop(self):
+        self.stopped = True
+
+    def configure(self, *args, **kwargs):
+        self.configured = True
 
 
 def minimal_dom_xml(vm_uuid=None):

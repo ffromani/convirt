@@ -43,31 +43,31 @@ class XMLFile(object):
         encoding = 'unicode' if six.PY3 else 'utf-8'
         return ET.tostring(root, encoding=encoding)
 
-    def __init__(self, xml_uuid, conf):
-        self._uuid = xml_uuid
+    def __init__(self, name, conf):
+        self._name = name
         self._conf = conf
         if self._conf is None:
-            raise UnconfiguredXML(self._uuid)
+            raise UnconfiguredXML(self._name)
 
     @property
     def path(self):
         return os.path.join(
-            self._conf.run_dir, '%s.xml' % (self._uuid)
+            self._conf.run_dir, '%s.xml' % (self._name)
         )
 
     def load(self):
         return ET.fromstring(self.read())
 
     def read(self):
-        self._log.debug('loading cached XML %r', self._uuid)
+        self._log.debug('loading cached XML %r', self._name)
         with open(self.path, 'rt') as src:
             return src.read()
 
     def save(self, root):
-        self._log.debug('saving cached XML %r', self._uuid)
+        self._log.debug('saving cached XML %r', self._name)
         with open(self.path, 'wt') as dst:
             dst.write(XMLFile.encode(root))
 
     def clear(self):
-        self._log.debug('clearing cached XML for container %s', self._uuid)
+        self._log.debug('clearing cached XML for container %s', self._name)
         runtime.rm_file(self.path)

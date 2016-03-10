@@ -63,10 +63,10 @@ class Domain(object):
         runtime = self._root.find('./devices/emulator').text
         self._log.debug('initializing container %s with runtime %s',
                         self.UUIDString(), runtime)
-        self._rt = api.create(runtime,
-                              vm_uuid=self.UUIDString(),
-                              conf=conf)
+        self._rt = api.create(runtime, conf=conf)
         self._xml_file = xmlfile.XMLFile(self._vm_uuid, conf)
+        self._log.debug('initializing container %s runtime %s',
+                        self.UUIDString(), self._rt.uuid)
 
     def destroyFlags(self, flags):
         #  flags are unused

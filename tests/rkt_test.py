@@ -24,6 +24,7 @@ import unittest
 import xml.etree.ElementTree as ET
 
 import convirt
+import convirt.config
 import convirt.rkt
 
 from . import monkey
@@ -33,16 +34,15 @@ from . import testlib
 class RktTests(testlib.RunnableTestCase):
 
     def test_created_not_running(self):
-        rkt = convirt.rkt.Rkt(str(uuid.uuid4()))
+        rkt = convirt.rkt.Rkt(convirt.config.current())
         self.assertFalse(rkt.running)
 
     def test_runtime_name_none_before_start(self):
-        rkt = convirt.rkt.Rkt(str(uuid.uuid4()))
+        rkt = convirt.rkt.Rkt(convirt.config.current())
         self.assertEqual(rkt.runtime_name(), None)
 
     def test_start_stop(self):
-        rkt = convirt.rkt.Rkt(str(uuid.uuid4()),
-                              testlib.make_conf(run_dir=self.run_dir))
+        rkt = convirt.rkt.Rkt(testlib.make_conf(run_dir=self.run_dir))
         root = ET.fromstring(testlib.minimal_dom_xml())
         rkt.configure(root)
         rkt.start()
@@ -53,8 +53,7 @@ class RktTests(testlib.RunnableTestCase):
             self.assertFalse(rkt.running)
 
     def test_start_twice(self):
-        rkt = convirt.rkt.Rkt(str(uuid.uuid4()),
-                              testlib.make_conf(run_dir=self.run_dir))
+        rkt = convirt.rkt.Rkt(testlib.make_conf(run_dir=self.run_dir))
         root = ET.fromstring(testlib.minimal_dom_xml())
         rkt.configure(root)
         rkt.start()
@@ -67,8 +66,7 @@ class RktTests(testlib.RunnableTestCase):
             rkt.stop()
 
     def test_start_twice(self):
-        rkt = convirt.rkt.Rkt(str(uuid.uuid4()),
-                              testlib.make_conf(run_dir=self.run_dir))
+        rkt = convirt.rkt.Rkt(testlib.make_conf(run_dir=self.run_dir))
         root = ET.fromstring(testlib.minimal_dom_xml())
         rkt.configure(root)
         rkt.start()
@@ -81,14 +79,12 @@ class RktTests(testlib.RunnableTestCase):
             rkt.stop()
 
     def test_stop_not_started(self):
-        rkt = convirt.rkt.Rkt(str(uuid.uuid4()),
-                              testlib.make_conf(run_dir=self.run_dir))
+        rkt = convirt.rkt.Rkt(testlib.make_conf(run_dir=self.run_dir))
         self.assertFalse(rkt.running)
         self.assertRaises(convirt.runner.OperationFailed, rkt.stop)
 
     def test_commandline_unquoted(self):
-        rkt = convirt.rkt.Rkt(str(uuid.uuid4()),
-                              testlib.make_conf(run_dir=self.run_dir))
+        rkt = convirt.rkt.Rkt(testlib.make_conf(run_dir=self.run_dir))
         root = ET.fromstring(testlib.minimal_dom_xml())
         rkt.configure(root)
         for arg in rkt.command_line():

@@ -105,7 +105,7 @@ class ConnectionAPITests(testlib.TestCase):
         self.runners = []
 
         def _fake_create(*args, **kwargs):
-            rt = FakeRunner()
+            rt = testlib.FakeRunner()
             self.runners.append(rt)
             return rt
 
@@ -125,7 +125,7 @@ class ConnectionAPITests(testlib.TestCase):
             yield vm_uuid
 
         def _fake_create(*args, **kwargs):
-            return FakeRunner()
+            return testlib.FakeRunner()
 
         with testlib.named_temp_dir() as tmp_dir:
             with testlib.global_conf(run_dir=tmp_dir):
@@ -153,7 +153,7 @@ class ConnectionAPITests(testlib.TestCase):
             return [str(uuid.uuid4())] + vm_uuids[1:]
 
         def _fake_create(*args, **kwargs):
-            return FakeRunner()
+            return testlib.FakeRunner()
 
         with testlib.named_temp_dir() as tmp_dir:
             with testlib.global_conf(run_dir=tmp_dir):
@@ -181,30 +181,6 @@ class FakeDomain(object):
 
     def UUIDString(self):
         return self._vm_uuid
-
-
-class FakeRunner(object):
-    def __init__(self):
-        self.stopped = False
-        self.started = False
-        self.setup_done = False
-        self.teardown_done = False
-        self.configured = False
-
-    def setup(self, *args, **kwargs):
-        self.setup_done = True
-
-    def teardown(self, *args, **kwargs):
-        self.teardown_done = True
-
-    def start(self, *args, **kwargs):
-        self.started = True
-
-    def stop(self):
-        self.stopped = True
-
-    def configure(self, *args, **kwargs):
-        self.configured = True
 
 
 def save_xml(xf, xml_str):

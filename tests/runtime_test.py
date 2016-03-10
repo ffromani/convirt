@@ -28,6 +28,7 @@ import xml.etree.ElementTree as ET
 
 import convirt
 import convirt.command
+import convirt.config
 import convirt.runtime
 
 from . import monkey
@@ -59,18 +60,17 @@ class RuntimeBaseAvailableTests(testlib.TestCase):
 class RuntimeBaseTests(testlib.TestCase):
 
     def setUp(self):
-        self.vm_uuid = str(uuid.uuid4())
-        self.base = convirt.runtime.Base(self.vm_uuid)
+        self.base = convirt.runtime.Base(convirt.config.current())
 
     def test_unit_name(self):
-        self.assertIn(self.vm_uuid, self.base.unit_name())
+        self.assertTrue(self.base.unit_name())  # TODO: improve
 
 
 
 class RuntimeBaseAPITests(testlib.TestCase):
 
     def setUp(self):
-        self.base = convirt.runtime.Base(str(uuid.uuid4()))
+        self.base = convirt.runtime.Base(convirt.config.current())
 
     def test_start(self):
         self.assertRaises(NotImplementedError, self.base.start, '')

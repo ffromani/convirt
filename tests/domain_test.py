@@ -187,6 +187,9 @@ class RecoveryTests(testlib.TestCase):
 
 class FailingRuntime(object):
 
+    def __init__(self):
+        self.uuid = '00000000-0000-0000-0000-000000000000'
+
     @classmethod
     def available(cls):
         return True

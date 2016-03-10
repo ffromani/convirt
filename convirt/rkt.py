@@ -50,13 +50,13 @@ class Rkt(runtime.Base):
 
     _DELAY = 1  # seconds  TODO: make config item?
 
-    def __init__(self, vm_uuid, conf=None):
-        super(Rkt, self).__init__(vm_uuid, conf)
-        rkt_uuid_file = '%s.%s' % (self._vm_uuid, self.NAME)
+    def __init__(self, conf):
+        super(Rkt, self).__init__(conf)
+        rkt_uuid_file = '%s.%s' % (self._uuid, self.NAME)
         self._rkt_uuid_path = os.path.join(
             self._conf.run_dir, rkt_uuid_file)
         self._log.debug('rkt container %s uuid_path=[%s]',
-                        self._vm_uuid, self._rkt_uuid_path)
+                        self._uuid, self._rkt_uuid_path)
         self._rkt_uuid = None
 
     @property
@@ -123,4 +123,4 @@ class Rkt(runtime.Base):
         with open(path, 'rt') as f:
             self._rkt_uuid = f.read().strip()
             self._log.info('rkt container %s rkt_uuid %s',
-                            self._vm_uuid, self._rkt_uuid)
+                            self._uuid, self._rkt_uuid)
