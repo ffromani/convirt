@@ -126,8 +126,22 @@ def _parse_systemctl_list_units(output):
     for line in output.splitlines():
         if not line:
             continue
-        unit = line.split()[0]
+        try:
+            unit, loaded, active, sub, desc = line.split(None, 4)
+        except ValueError:
+            logging.warning('unexpected systemctl line: %r', line)
+            continue
+        if not _is_running_unit(loaded, active, sub):
+            continue
         try:
             yield _vm_uuid_from_unit(unit)
         except ValueError:
             pass
+
+
+def _is_running_unit(loaded, active, sub):
+    return (
+        loaded == 'loaded' and
+        active == 'active' and
+        sub == 'running'
+    )
