@@ -51,6 +51,7 @@ class Domain(object):
     def recover(cls, rt_uuid, xmldesc, conf=None):
         cfg = conf if conf is not None else config.current()
         inst = cls(xmldesc, cfg, rt_uuid=rt_uuid)
+        inst._resync()
         doms.add(inst)
         return inst
 
@@ -128,6 +129,11 @@ class Domain(object):
         self._log.debug('starting container %r', self.UUIDString())
         self._rt.start()
         self._log.debug('started container %r', self.UUIDString())
+
+    def _resync(self):
+        self._log.debug('resyncing container %r', self.UUIDString())
+        self._rt.resync()
+        self._log.debug('resynced container %r', self.UUIDString())
 
     def _shutdown(self):
         self._log.debug('shutting down container %r', self.UUIDString())

@@ -72,6 +72,9 @@ class Rkt(runtime.Base):
         self._runner.start(cmd)
         self._collect_rkt_uuid(self._rkt_uuid_path)
 
+    def resync(self):
+        self._collect_rkt_uuid(self._rkt_uuid_path)
+
     def stop(self):
         if not self.running:
             raise runner.OperationFailed('not running')

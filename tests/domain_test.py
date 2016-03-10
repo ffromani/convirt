@@ -150,25 +150,10 @@ class RecoveryTests(testlib.TestCase):
 
     def setUp(self):
         convirt.doms.clear()
-
-    def test_recover_mismatching_uuids(self):
-        vm_uuid = str(uuid.uuid4())
-
-        with testlib.named_temp_dir() as tmp_dir:
-            conf = testlib.make_conf(run_dir=tmp_dir)
-            with monkey.patch_scope([(convirt.api, 'create',
-                                      self._fake_create)]):
-                self.assertRaises(RuntimeError,  # TODO
-                                  convirt.domain.Domain.recover,
-                                  vm_uuid,
-                                  testlib.minimal_dom_xml(),
-                                  conf)
+        self.runtime = None
 
     def test_recover(self):
         vm_uuid = str(uuid.uuid4())
-
-        def _fake_create(rt, *args, **kwargs):
-            return FailingRuntime()
 
         with testlib.named_temp_dir() as tmp_dir:
             conf = testlib.make_conf(run_dir=tmp_dir)
@@ -180,19 +165,25 @@ class RecoveryTests(testlib.TestCase):
         existing_doms = convirt.doms.get_all()
         self.assertEquals(len(existing_doms), 1)
         self.assertEquals(existing_doms[0].UUIDString(), vm_uuid)
+        self.assertTrue(self.runtime.resynced)
 
     def _fake_create(self, rt, *args, **kwargs):
-        return FailingRuntime()
+        self.runtime = ResyncingRuntime()
+        return self.runtime
 
 
-class FailingRuntime(object):
+class ResyncingRuntime(object):
 
     def __init__(self):
         self.uuid = '00000000-0000-0000-0000-000000000000'
+        self.resynced = False
 
     @classmethod
     def available(cls):
         return True
+
+    def resync(self):
+        self.resynced = True
 
     def unit_name(self):
         raise AssertionError("should not be called")

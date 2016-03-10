@@ -96,6 +96,9 @@ class Base(object):
     def start(self, target=None):
         raise NotImplementedError
 
+    def resync(self):
+        raise NotImplementedError
+
     def stop(self):
         raise NotImplementedError
 

@@ -136,6 +136,7 @@ class FakeRunner(object):
         self.setup_done = False
         self.teardown_done = False
         self.configured = False
+        self.resynced = False
         self.uuid = '00000000-0000-0000-0000-000000000000'
 
     def setup(self, *args, **kwargs):
@@ -146,6 +147,9 @@ class FakeRunner(object):
 
     def start(self, *args, **kwargs):
         self.started = True
+
+    def resync(self):
+        self.resynced = True
 
     def stop(self):
         self.stopped = True
