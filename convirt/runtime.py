@@ -114,6 +114,14 @@ class Base(object):
     def teardown(self):
         pass  # optional
 
+    @classmethod
+    def setup_runtime(cls):
+        pass  # optional
+
+    @classmethod
+    def teardown_runtime(cls):
+        pass  # optional
+
     @property
     def runtime_config(self):
         """

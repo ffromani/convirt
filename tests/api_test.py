@@ -30,7 +30,7 @@ from . import monkey
 from . import testlib
 
 
-class FunctionsTests(unittest.TestCase):
+class FunctionsTests(testlib.TestCase):
 
     def setUp(self):
         convirt.api.clear()
@@ -49,3 +49,64 @@ class FunctionsTests(unittest.TestCase):
         self.assertRaises(convirt.runtime.Unsupported,
                           convirt.api.create,
                           'docker')
+
+    def test_setup_runtime(self):
+        convirt.api._runtimes[FakeRuntime.NAME] = FakeRuntime
+        convirt.api.setup()
+        self.assertTrue(FakeRuntime.setup_runtime_done)
+
+    def test_setup_runtime_register(self):
+        def _find_runtimes():  # FIXME: ugly
+            return {
+                FakeRuntime.NAME: FakeRuntime
+            }
+        with monkey.patch_scope(
+                [(convirt.api, '_find_runtimes', _find_runtimes)]
+            ):
+            convirt.api.setup(register=True)
+        self.assertTrue(FakeRuntime.setup_runtime_done)
+        self.assertEquals(convirt.api.supported(),
+                          frozenset([FakeRuntime.NAME]))
+
+    def test_setup_runtime_twice(self):
+        convirt.api._runtimes[FakeRuntime.NAME] = FakeRuntime
+        convirt.api.setup()
+        self.assertRaises(convirt.api.APIError,
+                          convirt.api.setup)
+
+    def test_teardown_runtime(self):
+        convirt.api._runtimes[FakeRuntime.NAME] = FakeRuntime
+        convirt.api.setup()
+        convirt.api.teardown()
+        self.assertTrue(FakeRuntime.teardown_runtime_done)
+
+    def test_teardown_runtime_twice(self):
+        convirt.api._runtimes[FakeRuntime.NAME] = FakeRuntime
+        convirt.api.setup()
+        convirt.api.teardown()
+        self.assertRaises(convirt.api.APIError,
+                          convirt.api.teardown)
+
+    def test_teardown_clear(self):
+        convirt.api._runtimes[FakeRuntime.NAME] = FakeRuntime
+        convirt.api.setup(register=False)
+        convirt.api.teardown(clear=True)
+        self.assertTrue(FakeRuntime.teardown_runtime_done)
+        self.assertEquals(convirt.api.supported(), frozenset())
+
+
+class FakeRuntime(object):
+
+    setup_runtime_done = False
+
+    teardown_runtime_done = False
+
+    NAME = 'FAKE'
+
+    @classmethod
+    def setup_runtime(cls):
+        cls.setup_runtime_done = True
+
+    @classmethod
+    def teardown_runtime(cls):
+        cls.teardown_runtime_done = True

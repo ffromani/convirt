@@ -66,13 +66,6 @@ class RuntimeBaseTests(testlib.TestCase):
     def test_unit_name(self):
         self.assertTrue(self.base.unit_name())  # TODO: improve
 
-
-
-class RuntimeBaseAPITests(testlib.TestCase):
-
-    def setUp(self):
-        self.base = convirt.runtime.Base(convirt.config.environ.current())
-
     def test_start(self):
         self.assertRaises(NotImplementedError, self.base.start, '')
 
@@ -87,6 +80,12 @@ class RuntimeBaseAPITests(testlib.TestCase):
 
     def test_runtime_name(self):
         self.assertRaises(NotImplementedError, self.base.runtime_name)
+
+    def test_setup_runtime(self):
+        self.assertNotRaises(convirt.runtime.Base.setup_runtime())
+
+    def test_teardown_runtime(self):
+        self.assertNotRaises(convirt.runtime.Base.teardown_runtime())
 
 
 class RuntimeBaseConfigureTests(testlib.TestCase):

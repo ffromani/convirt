@@ -109,6 +109,8 @@ class RunnableTestCase(TestCase):
             (convirt.rkt, '_MACHINECTL', fake_mctl),
             (convirt.runner, '_SYSTEMD_RUN', fake_sdrun)])
         self.patch.apply()
+        convirt.api.clear()
+        convirt.api.supported()  # FIXME
 
     def tearDown(self):
         self.patch.revert()

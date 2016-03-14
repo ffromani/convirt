@@ -30,22 +30,63 @@ _log = logging.getLogger('convirt')
 
 _lock = threading.Lock()
 _runtimes = {}
+_ready = False
+
+
+class APIError(Exception):
+    pass
 
 
 def _available():
-    global _runtimes
     with _lock:
-        if not _runtimes:
-            rts = {}
-            if rkt.Rkt.available():
-                rts[rkt.Rkt.NAME] = rkt.Rkt
-            _runtimes = rts
+        _register()
     return _runtimes
+
+
+def _find_runtimes():
+    rts = {}
+    if rkt.Rkt.available():
+        rts[rkt.Rkt.NAME] = rkt.Rkt
+    return rts
+
+
+def _register():
+    global _runtimes
+    if not _runtimes:
+        _runtimes = _find_runtimes()
 
 
 def supported():
     runtimes = _available()
     return frozenset(list(runtimes.keys()))
+
+
+def setup(register=False):
+    global _ready
+    global _runtimes
+    with _lock:
+        if _ready:
+            raise APIError('setup already done')
+        if register:
+            _register()
+        for name, rt in _runtimes.items():
+            _log.debug('setting up runtime %r', name)
+            rt.setup_runtime()
+        _ready = True
+
+
+def teardown(clear=False):
+    global _ready
+    global _runtimes
+    with _lock:
+        if not _ready:
+            raise APIError('teardown already done')
+        for name, rt in _runtimes.items():
+            _log.debug('shutting down runtime %r', name)
+            rt.teardown_runtime()
+        if clear:
+            _runtimes.clear()
+        _ready = False
 
 
 def create(rt, *args, **kwargs):
@@ -58,6 +99,8 @@ def create(rt, *args, **kwargs):
 
 # for test purposes
 def clear():
+    global _ready
     global _runtimes
     with _lock:
         _runtimes.clear()
+        _ready = False
