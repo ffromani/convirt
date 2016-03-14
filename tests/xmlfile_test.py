@@ -26,7 +26,8 @@ import unittest
 import xml.etree.ElementTree as ET
 
 import convirt
-import convirt
+import convirt.config
+import convirt.config.environ
 import convirt.xmlfile
 
 from . import monkey
@@ -44,7 +45,7 @@ class XMLFileTests(testlib.TestCase):
             with testlib.global_conf(run_dir=tmp_dir):
                 yield convirt.xmlfile.XMLFile(
                     self.vm_uuid,
-                    convirt.config.current()
+                    convirt.config.environ.current()
                 )
 
     def test_fails_without_conf(self):
@@ -61,7 +62,7 @@ class XMLFileTests(testlib.TestCase):
     def test_save(self):
         root = ET.fromstring(testlib.minimal_dom_xml())
         with self.test_env() as xf:
-            conf = convirt.config.current()
+            conf = convirt.config.environ.current()
             self.assertEquals(os.listdir(conf.run_dir), [])
             self.assertNotRaises(xf.save, root)
             self.assertTrue(len(os.listdir(conf.run_dir)), 1)
@@ -82,7 +83,7 @@ class XMLFileTests(testlib.TestCase):
         root = ET.fromstring(xml_data)
         with self.test_env() as xf:
             xf.save(root)
-            conf = convirt.config.current()
+            conf = convirt.config.environ.current()
             self.assertTrue(len(os.listdir(conf.run_dir)), 1)
             self.assertNotRaises(xf.clear)
             self.assertEquals(os.listdir(conf.run_dir), [])

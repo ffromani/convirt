@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 #
 # Copyright 2016 Red Hat, Inc.
 #
@@ -18,6 +17,7 @@ from __future__ import absolute_import
 #
 # Refer to the README and COPYING files for full details of the license
 #
+from __future__ import absolute_import
 
 from collections import MutableMapping
 
@@ -60,50 +60,4 @@ class AttrDict(MutableMapping):
         return len(self.__dict__)
 
 
-# alias for nicer (?) name
-Environment = AttrDict
-
-
-# NOTE about run_dir:
-# we used to want
-# /base/dir/
-#         +- $UUID/
-#                +- rkt_uuid
-#
-# Actually, we don't need this subdir, so we switched
-# to the simpler schema.
-#
-# /base/dir/
-#         +- $UUID.rkt
-#
-# for the time being
-
-_ENV = Environment(
-    uid=None,
-    gid=None,
-    tools_dir='/usr/libexec/convirt',
-    run_dir='/run/convirt',
-    use_sudo=True,
-    cgroup_slice='convirt',  # XXX: or 'machine' ?
-)
-
-
-def current():
-    env = Environment()
-    env.update(_ENV)
-    return env
-
-
-def setup(env):
-    global _ENV
-    new_ENV = Environment((k, v) for k, v in list(_ENV.items()))
-    new_ENV.update(env)
-    _ENV = new_ENV
-
-
-def update(**kwargs):
-    global _ENV
-    new_ENV = Environment((k, v) for k, v in list(_ENV.items()))
-    new_ENV.update(kwargs)
-    _ENV = new_ENV
-    return new_ENV
+__all__ = ['environ']

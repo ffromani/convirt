@@ -28,6 +28,7 @@ import unittest
 import convirt.api
 import convirt.command
 import convirt.config
+import convirt.config.environ
 
 from . import monkey
 
@@ -75,7 +76,7 @@ def named_temp_dir(base=TEMPDIR):
 
 
 def make_conf(**kwargs):
-    conf = convirt.config.current()
+    conf = convirt.config.environ.current()
     conf.use_sudo = False  # hack for convenience
     for k, v in list(kwargs.items()):
         setattr(conf, k, v)
@@ -84,14 +85,14 @@ def make_conf(**kwargs):
 
 @contextmanager
 def global_conf(**kwargs):
-    saved_conf = convirt.config.current()
+    saved_conf = convirt.config.environ.current()
 
     conf = make_conf(**kwargs)
-    convirt.config.setup(conf)
+    convirt.config.environ.setup(conf)
     try:
         yield conf
     finally:
-        convirt.config.setup(saved_conf)
+        convirt.config.environ.setup(saved_conf)
 
 
 class RunnableTestCase(TestCase):
@@ -126,7 +127,7 @@ class FakeRunnableTestCase(TestCase):
 
         with monkey.patch_scope([(convirt.api, 'create', _fake_create)]):
             self.dom = convirt.domain.Domain(minimal_dom_xml(),
-                                             convirt.config.current())
+                                             convirt.config.environ.current())
 
 
 class FakeRunner(object):

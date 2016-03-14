@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 #
 # Copyright 2015-2016 Red Hat, Inc.
 #
@@ -18,6 +17,7 @@ from __future__ import absolute_import
 #
 # Refer to the README and COPYING files for full details of the license
 #
+from __future__ import absolute_import
 
 from contextlib import contextmanager
 import uuid
@@ -53,7 +53,7 @@ class DomainIdsTests(testlib.RunnableTestCase):
         """
         self.dom = convirt.domain.Domain(
             self.xmldesc % str(self.guid),
-            convirt.config.current()
+            convirt.config.environ.current()
         )
 
     def test_ID(self):
@@ -68,14 +68,14 @@ class DomainXMLTests(testlib.RunnableTestCase):
     def test_XMLDesc(self):
         dom_xml = testlib.minimal_dom_xml()
         dom = convirt.domain.Domain(dom_xml,
-                                    convirt.config.current())
+                                    convirt.config.environ.current())
         self.assertEqual(dom.XMLDesc(0), dom_xml)
 
     def test_XMLDesc_ignore_flags(self):
         # TODO: provide XML to exercise all the features.
         _TEST_DOM_XML = testlib.minimal_dom_xml()
         dom = convirt.domain.Domain(_TEST_DOM_XML,
-                                    convirt.config.current())
+                                    convirt.config.environ.current())
         self.assertEqual(dom.XMLDesc(libvirt.VIR_DOMAIN_XML_SECURE),
                                      _TEST_DOM_XML)
         self.assertEqual(dom.XMLDesc(libvirt.VIR_DOMAIN_XML_INACTIVE),
@@ -107,7 +107,7 @@ class UnsupportedAPITests(testlib.RunnableTestCase):
 
     def test_migrate(self):
         dom = convirt.domain.Domain(testlib.minimal_dom_xml(),
-                                    convirt.config.current())
+                                    convirt.config.environ.current())
         self.assertRaises(libvirt.libvirtError,
                           dom.migrate,
                           {})

@@ -48,7 +48,7 @@ class Runner(object):
 
     def __init__(self, unit_name, conf=None):
         self._unit_name = unit_name
-        self._conf = config.current() if conf is None else conf
+        self._conf = config.environ.current() if conf is None else conf
         self._running = False
 
     @property

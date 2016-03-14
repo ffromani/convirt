@@ -25,6 +25,7 @@ import xml.etree.ElementTree as ET
 
 import convirt
 import convirt.config
+import convirt.config.environ
 import convirt.rkt
 
 from . import monkey
@@ -34,11 +35,11 @@ from . import testlib
 class RktTests(testlib.RunnableTestCase):
 
     def test_created_not_running(self):
-        rkt = convirt.rkt.Rkt(convirt.config.current())
+        rkt = convirt.rkt.Rkt(convirt.config.environ.current())
         self.assertFalse(rkt.running)
 
     def test_runtime_name_none_before_start(self):
-        rkt = convirt.rkt.Rkt(convirt.config.current())
+        rkt = convirt.rkt.Rkt(convirt.config.environ.current())
         self.assertEqual(rkt.runtime_name(), None)
 
     def test_start_stop(self):

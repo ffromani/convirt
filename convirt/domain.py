@@ -41,7 +41,7 @@ class Domain(object):
 
     @classmethod
     def create(cls, xmldesc, conf=None):
-        cfg = conf if conf is not None else config.current()
+        cfg = conf if conf is not None else config.environ.current()
         inst = cls(xmldesc, cfg)
         inst._startup()
         doms.add(inst)
@@ -49,7 +49,7 @@ class Domain(object):
 
     @classmethod
     def recover(cls, rt_uuid, xmldesc, conf=None):
-        cfg = conf if conf is not None else config.current()
+        cfg = conf if conf is not None else config.environ.current()
         inst = cls(xmldesc, cfg, rt_uuid=rt_uuid)
         inst._resync()
         doms.add(inst)

@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 #
 # Copyright 2015-2016 Red Hat, Inc.
 #
@@ -18,6 +17,7 @@ from __future__ import absolute_import
 #
 # Refer to the README and COPYING files for full details of the license
 #
+from __future__ import absolute_import
 
 import errno
 import os
@@ -29,6 +29,7 @@ import xml.etree.ElementTree as ET
 import convirt
 import convirt.command
 import convirt.config
+import convirt.config.environ
 import convirt.runtime
 
 from . import monkey
@@ -60,7 +61,7 @@ class RuntimeBaseAvailableTests(testlib.TestCase):
 class RuntimeBaseTests(testlib.TestCase):
 
     def setUp(self):
-        self.base = convirt.runtime.Base(convirt.config.current())
+        self.base = convirt.runtime.Base(convirt.config.environ.current())
 
     def test_unit_name(self):
         self.assertTrue(self.base.unit_name())  # TODO: improve
@@ -70,7 +71,7 @@ class RuntimeBaseTests(testlib.TestCase):
 class RuntimeBaseAPITests(testlib.TestCase):
 
     def setUp(self):
-        self.base = convirt.runtime.Base(convirt.config.current())
+        self.base = convirt.runtime.Base(convirt.config.environ.current())
 
     def test_start(self):
         self.assertRaises(NotImplementedError, self.base.start, '')

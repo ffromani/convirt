@@ -83,7 +83,7 @@ class Connection(object):
         return 0x001002018  # TODO
 
     def recoveryAllDomains(self):
-        conf = config.current()
+        conf = config.environ.current()
         for rt_uuid in runner.get_all():
             self._log.debug('trying to recover container %r', rt_uuid)
             xml_file = xmlfile.XMLFile(rt_uuid, conf)

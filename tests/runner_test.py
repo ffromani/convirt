@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 #
 # Copyright 2015-2016 Red Hat, Inc.
 #
@@ -18,6 +17,7 @@ from __future__ import absolute_import
 #
 # Refer to the README and COPYING files for full details of the license
 #
+from __future__ import absolute_import
 
 import errno
 import os
@@ -141,7 +141,7 @@ class RunnerTests(testlib.TestCase):
             )
             self.assertTrue(uid_found)
 
-        conf = convirt.config.current()
+        conf = convirt.config.environ.current()
         conf.uid = uid
         runner = convirt.runner.Runner(self.unit_name, conf)
         with monkey.patch_scope([(runner, 'call', _fake_call)]):
@@ -156,7 +156,7 @@ class RunnerTests(testlib.TestCase):
             )
             self.assertTrue(gid_found)
 
-        conf = convirt.config.current()
+        conf = convirt.config.environ.current()
         conf.gid = gid
         runner = convirt.runner.Runner(self.unit_name, conf)
         with monkey.patch_scope([(runner, 'call', _fake_call)]):

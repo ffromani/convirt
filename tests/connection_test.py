@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 #
 # Copyright 2015-2016 Red Hat, Inc.
 #
@@ -18,6 +17,7 @@ from __future__ import absolute_import
 #
 # Refer to the README and COPYING files for full details of the license
 #
+from __future__ import absolute_import
 
 import uuid
 import xml.etree.ElementTree as ET
@@ -26,6 +26,7 @@ import libvirt
 
 import convirt
 import convirt.config
+import convirt.config.environ
 import convirt.doms
 import convirt.runner
 import convirt.xmlfile
@@ -138,7 +139,7 @@ class ConnectionAPITests(testlib.FakeRunnableTestCase):
         with testlib.named_temp_dir() as tmp_dir:
             with testlib.global_conf(run_dir=tmp_dir):
                 xf = convirt.xmlfile.XMLFile(vm_uuid,
-                                             convirt.config.current())
+                                             convirt.config.environ.current())
                 save_xml(xf, testlib.minimal_dom_xml(vm_uuid=vm_uuid))
                 with monkey.patch_scope([(convirt.runner, 'get_all',
                                           _fake_get_all),
@@ -167,7 +168,7 @@ class ConnectionAPITests(testlib.FakeRunnableTestCase):
             with testlib.global_conf(run_dir=tmp_dir):
                 for vm_uuid in vm_uuids:
                     xf = convirt.xmlfile.XMLFile(vm_uuid,
-                                                 convirt.config.current())
+                                                 convirt.config.environ.current())
                     save_xml(xf, testlib.minimal_dom_xml(vm_uuid=vm_uuid))
 
                 with monkey.patch_scope([
