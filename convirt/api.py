@@ -25,7 +25,7 @@ from . import rkt
 from . import runtime
 
 
-_log = logging.getLogger('convirt.api')
+_log = logging.getLogger('convirt')
 
 
 def _available():
