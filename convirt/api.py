@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 #
 # Copyright 2016 Red Hat, Inc.
 #
@@ -18,6 +17,7 @@ from __future__ import absolute_import
 #
 # Refer to the README and COPYING files for full details of the license
 #
+from __future__ import absolute_import
 
 import logging
 
@@ -33,6 +33,7 @@ def _available():
     if rkt.Rkt.available():
         runtimes[rkt.Rkt.NAME] = rkt.Rkt
     return runtimes
+
 
 def supported():
     runtimes = _available()
