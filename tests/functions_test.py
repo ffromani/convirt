@@ -32,6 +32,9 @@ from . import testlib
 
 class FunctionsTests(unittest.TestCase):
 
+    def setUp(self):
+        convirt.api.clear()
+
     def test_no_runtimes_supported(self):
         with monkey.patch_scope([(convirt.rkt.Rkt, '_PATH',
                                   testlib.NonePath())]):

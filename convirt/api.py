@@ -20,6 +20,7 @@
 from __future__ import absolute_import
 
 import logging
+import threading
 
 from . import rkt
 from . import runtime
@@ -27,12 +28,19 @@ from . import runtime
 
 _log = logging.getLogger('convirt')
 
+_lock = threading.Lock()
+_runtimes = {}
+
 
 def _available():
-    runtimes = {}
-    if rkt.Rkt.available():
-        runtimes[rkt.Rkt.NAME] = rkt.Rkt
-    return runtimes
+    global _runtimes
+    with _lock:
+        if not _runtimes:
+            rts = {}
+            if rkt.Rkt.available():
+                rts[rkt.Rkt.NAME] = rkt.Rkt
+            _runtimes = rts
+    return _runtimes
 
 
 def supported():
@@ -43,6 +51,13 @@ def supported():
 def create(rt, *args, **kwargs):
     runtimes = _available()
     if rt in runtimes:
-        _log.debug('creating container with runtime [%s]', rt)
+        _log.debug('creating container with runtime %r', rt)
         return runtimes[rt](*args, **kwargs)
     raise runtime.Unsupported(rt)
+
+
+# for test purposes
+def clear():
+    global _runtimes
+    with _lock:
+        _runtimes.clear()
