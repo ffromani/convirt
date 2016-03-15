@@ -101,10 +101,16 @@ class Rkt(runtime.Base):
 
     def command_line(self, target=None):
         image = self._run_conf.image_path if target is None else target
+        network = (
+            'default'
+            if self._run_conf.network is None else
+            self._run_conf.network
+        )
         cmd = [
             Rkt._PATH.cmd(),
             '--uuid-file-save=%s' % self._rkt_uuid_path,
             '--insecure-options=image',  # FIXME
+            '--net=%s' % network,
             'run',
             '%s' % image,
             '--memory=%iM' % (self._run_conf.memory_size_mib),
