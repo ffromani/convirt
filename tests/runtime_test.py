@@ -152,6 +152,7 @@ class RuntimeBaseConfigureTests(testlib.TestCase):
         conf = self.base.runtime_config
         self.assertEquals(conf.image_path, PATH)
         self.assertEquals(conf.memory_size_mib, MEM)
+        self.assertEquals(conf.network, None)
 
     def test_config_ovirt_vm(self):
         root = ET.fromstring(
@@ -244,6 +245,10 @@ class RuntimeBaseConfigureTests(testlib.TestCase):
         self.assertNotRaises(self.base.configure, root)
         conf = self.base.runtime_config
         self.assertTrue(conf.image_path)
+        self.assertTrue(conf.memory_size_mib)
+        self.assertEquals(conf.network, "ovirtmgmt")
+
+    # TODO: test error paths in configure()
 
 
 class RMFileTests(testlib.TestCase):

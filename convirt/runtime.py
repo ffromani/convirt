@@ -49,8 +49,8 @@ class ConfigError(Exception):
 
 
 # TODO: networking
-RunConfig = collections.namedtuple('RunConfig',
-                                   ['image_path', 'memory_size_mib'])
+RunConfig = collections.namedtuple(
+    'RunConfig', ['image_path', 'memory_size_mib', 'network'])
 
 
 class Base(object):
@@ -88,8 +88,13 @@ class Base(object):
         self._log.debug('configuring runtime %r', self.uuid)
         mem = self._find_memory(xml_tree)
         path = self._find_image(xml_tree)
-        # TODO: network
-        self._run_conf = RunConfig(path, mem)
+        try:
+            net = self._find_network(xml_tree)
+        except ConfigError:
+            self._log.debug('no network detected for %r, using default',
+                            self.uuid)
+            net = None
+        self._run_conf = RunConfig(path, mem, net)
         self._log.debug('configured runtime %s: %s',
                         self.uuid, self._run_conf)
 
@@ -151,11 +156,26 @@ class Base(object):
             image_path = source.get('file')
             if not image_path:
                 continue
-            self._log.debug('runtime %r found image path = [%s]',
+            self._log.debug('runtime %r found image path %r',
                             self.uuid, image_path)
             return image_path.strip('"')
         raise ConfigError('image path not found')
 
+    def _find_network(self, xml_tree):
+        interfaces = xml_tree.findall('.//interface[@type="bridge"]')
+        for interface in interfaces:
+            link = interface.find('./link')
+            if link.get('state') != 'up':
+                continue
+            source = interface.find('./source')
+            if source is None:
+                continue
+            bridge = source.get('bridge')
+            if not bridge:
+                continue
+            self._log.debug('runtime %r found bridge %r', self.uuid, bridge)
+            return bridge.strip('"')
+        raise ConfigError('network settings not found')  # TODO
 
 
 def rm_file(target):
