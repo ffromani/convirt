@@ -20,11 +20,13 @@ from __future__ import absolute_import
 #
 
 import collections
+import json
 import logging
 import os
 import os.path
 import time
 
+from .config import network
 from . import command
 from . import runner
 from . import runtime
@@ -58,6 +60,12 @@ class Rkt(runtime.Base):
         self._log.debug('rkt runtime %s uuid_path=[%s]',
                         self._uuid, self._rkt_uuid_path)
         self._rkt_uuid = None
+
+    @classmethod
+    def setup_runtime(cls):
+        conf = network.current()
+        with Network() as net:
+            net.update(conf)
 
     @property
     def running(self):
@@ -127,3 +135,80 @@ class Rkt(runtime.Base):
             self._rkt_uuid = f.read().strip()
             self._log.info('rkt container %s rkt_uuid %s',
                             self._uuid, self._rkt_uuid)
+
+
+class Network(object):
+
+    DIR = '/etc/rkt/net.d'
+
+    NAME = '50-convirt-containers.conf'
+
+    _log = logging.getLogger('convirt.runtime.Rkt')
+
+    def __init__(self, name=None):
+        self._name = self.NAME if name is None else name
+        self._data = {}
+        self._dirty = False
+
+    def __enter__(self):
+        self.load()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type is None:
+            self.save()
+
+    def __eq__(self, other):
+        return self._data == other._data
+
+    @property
+    def path(self):
+        return os.path.join(self.DIR, self._name)
+
+    def update(self, conf):
+        new_data = self._make(conf)
+        if self._data != new_data:
+            self._data = new_data
+            self._dirty = True
+
+    def load(self):
+        with open(self.path, 'rt') as src:
+            self._data = json.load(src)
+        return self._data
+
+    def save(self, force=False):
+        if not self._dirty and not force:
+            self._log.info('config: no update needed, save skipped')
+        else:
+            with open(self.path, 'wt') as dst:
+                json.dump(self._data, dst)
+
+    def clear(self):
+        runtime.rm_file(self.path)
+
+    # test/debug purposes
+    def get_conf(self):
+        net, mask = self._data["ipam"]["subnet"].split('/')
+        return {
+            "bridge": self._data["bridge"],
+            "subnet": net,
+            "mask": int(mask),
+        }
+
+    def _make(self, conf):
+        bridge = conf["bridge"]
+        self._log.debug('config: using bridge %r', bridge)
+        return {
+            "name": "containers",
+            "type": "bridge",
+            "bridge": bridge,
+            "ipam": self._make_ipam(conf)
+        }
+
+    def _make_ipam(self, conf):
+        subnet = "%s/%s" % (conf["subnet"], conf["mask"])
+        self._log.debug('config: using subnet %r', subnet)
+        return {
+            "type": "host-local",
+            "subnet": subnet,
+        }
