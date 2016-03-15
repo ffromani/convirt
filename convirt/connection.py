@@ -82,6 +82,7 @@ class Connection(object):
     def getLibVersion(self):
         return 0x001002018  # TODO
 
+    # TODO: this is not the best place
     def recoveryAllDomains(self):
         conf = config.environ.current()
         for rt_uuid in runner.get_all():
