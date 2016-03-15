@@ -82,21 +82,6 @@ class Connection(object):
     def getLibVersion(self):
         return 0x001002018  # TODO
 
-    # TODO: this is not the best place
-    def recoveryAllDomains(self):
-        conf = config.environ.current()
-        for rt_uuid in runner.get_all():
-            self._log.debug('trying to recover container %r', rt_uuid)
-            xml_file = xmlfile.XMLFile(rt_uuid, conf)
-            try:
-                domain.Domain.recover(rt_uuid, xml_file.read(), conf)
-            except Exception:  # FIXME: too coarse
-                self._log.exception('failed to recover container %r',
-                                    rt_uuid)
-            else:
-                self._log.debug('recovered container %r', rt_uuid)
-        return doms.get_all()
-
     def __getattr__(self, name):
         # virConnect does not expose non-callable attributes.
         return self._fake_method

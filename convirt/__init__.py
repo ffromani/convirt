@@ -19,9 +19,33 @@
 #
 from __future__ import absolute_import
 
-from . import api
+import logging
+
+
+from .config import environ
+from .domain import Domain
+from .xmlfile import XMLFile
 from . import connection
+from . import doms
 from . import errors
+from . import runner
+
+
+_log = logging.getLogger('convirt')
+
+
+def recoveryAllDomains():
+    conf = environ.current()
+    for rt_uuid in runner.get_all():
+        _log.debug('trying to recover container %r', rt_uuid)
+        xml_file = XMLFile(rt_uuid, conf)
+        try:
+            Domain.recover(rt_uuid, xml_file.read(), conf)
+        except Exception:  # FIXME: too coarse
+            _log.exception('failed to recover container %r', rt_uuid)
+        else:
+            _log.debug('recovered container %r', rt_uuid)
+    return doms.get_all()
 
 
 def openAuth(uri, auth, flags=0):

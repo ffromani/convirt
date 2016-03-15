@@ -127,62 +127,6 @@ class ConnectionAPITests(testlib.FakeRunnableTestCase):
         self.assertTrue(dom)
         dom.destroy()
 
-    def test_recoverAllDomains(self):
-        vm_uuid = str(uuid.uuid4())
-
-        def _fake_get_all():
-            yield vm_uuid
-
-        def _fake_create(*args, **kwargs):
-            return testlib.FakeRunner()
-
-        with testlib.named_temp_dir() as tmp_dir:
-            with testlib.global_conf(run_dir=tmp_dir):
-                xf = convirt.xmlfile.XMLFile(vm_uuid,
-                                             convirt.config.environ.current())
-                save_xml(xf, testlib.minimal_dom_xml(vm_uuid=vm_uuid))
-                with monkey.patch_scope([(convirt.runner, 'get_all',
-                                          _fake_get_all),
-                                         (convirt.api, 'create', _fake_create),
-                                        ]):
-                    conn = convirt.openAuth('convirt:///system', None)
-                    recovered_doms = conn.recoveryAllDomains()
-                    self.assertEquals(len(recovered_doms), 1)
-                    self.assertEquals(recovered_doms[0].UUIDString(), vm_uuid)
-
-    def test_recoverAllDomains_with_exceptions(self):
-        vm_uuids = [
-            str(uuid.uuid4()),
-            str(uuid.uuid4()),
-            str(uuid.uuid4()),
-        ]
-
-        def _fake_get_all():
-            # mismatch UUID
-            return [str(uuid.uuid4())] + vm_uuids[1:]
-
-        def _fake_create(*args, **kwargs):
-            return testlib.FakeRunner()
-
-        with testlib.named_temp_dir() as tmp_dir:
-            with testlib.global_conf(run_dir=tmp_dir):
-                for vm_uuid in vm_uuids:
-                    xf = convirt.xmlfile.XMLFile(vm_uuid,
-                                                 convirt.config.environ.current())
-                    save_xml(xf, testlib.minimal_dom_xml(vm_uuid=vm_uuid))
-
-                with monkey.patch_scope([
-                    (convirt.runner, 'get_all', _fake_get_all),
-                    (convirt.api, 'create', _fake_create),
-                ]):
-                    conn = convirt.openAuth('convirt:///system', None)
-                    recovered_doms = conn.recoveryAllDomains()
-                    recovered_uuids = set(vm_uuids[1:])
-                    self.assertEquals(len(recovered_doms),
-                                      len(recovered_uuids))
-                    for dom in recovered_doms:
-                        self.assertIn(dom.UUIDString(), recovered_uuids)
-
 
 class FakeDomain(object):
     def __init__(self, vm_uuid):
