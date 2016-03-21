@@ -199,16 +199,19 @@ class Network(object):
     def get_conf(self):
         net, mask = self._data["ipam"]["subnet"].split('/')
         return {
+            "name": self._data["name"],
             "bridge": self._data["bridge"],
             "subnet": net,
             "mask": int(mask),
         }
 
     def _make(self, conf):
+        name = conf.get("name", None) or conf["bridge"]
         bridge = conf["bridge"]
-        self._log.debug('config: using bridge %r', bridge)
+        self._log.debug('config: using bridge %r for %r',
+                        bridge, name)
         return {
-            "name": "containers",
+            "name": name,
             "type": "bridge",
             "bridge": bridge,
             "ipam": self._make_ipam(conf)

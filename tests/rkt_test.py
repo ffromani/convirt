@@ -152,6 +152,7 @@ class NetworkTests(testlib.TestCase):
         with testlib.named_temp_dir() as tmp_dir:
             with monkey.patch_scope([(convirt.rkt.Network, 'DIR', tmp_dir)]):
                 conf1 = {
+                    'name': 'test-net',
                     'bridge': 'foobar',
                     'subnet': '192.168.42.0',
                     'mask': 27,

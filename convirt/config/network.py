@@ -29,6 +29,7 @@ Network = AttrDict
 
 
 _NET = Network(
+    name='containers',
     bridge='convirt',
     subnet='10.1.0.0',
     mask='16',
