@@ -31,7 +31,7 @@ setup(name='convirt',
       author_email = 'fromani@redhat.com',
       url='TODO',
       download_url='TODO',
-      packages=[ 'convirt' ],
+      packages=[ 'convirt', 'convirt.config' ],
       py_modules=[ 'cgview' ],
       install_requires=[
         "libvirt-python",
