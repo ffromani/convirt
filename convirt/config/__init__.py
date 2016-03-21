@@ -59,5 +59,8 @@ class AttrDict(MutableMapping):
     def __len__(self):
         return len(self.__dict__)
 
+    def __repr__(self):
+        return repr(self.__dict__)
 
-__all__ = ['environ']
+
+__all__ = ['environ', 'network']
