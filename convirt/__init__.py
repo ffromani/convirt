@@ -28,10 +28,15 @@ from .xmlfile import XMLFile
 from . import connection
 from . import doms
 from . import errors
+from . import monitoring
 from . import runner
 
 
 _log = logging.getLogger('convirt')
+
+
+def monitorAllDomains():
+    monitoring.watchdog()
 
 
 def recoveryAllDomains():

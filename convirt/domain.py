@@ -29,6 +29,7 @@ import libvirt
 
 from . import config
 from . import errors
+from . import events
 from . import doms
 from . import runner
 from . import runtime
@@ -66,6 +67,9 @@ class Domain(object):
         self._xml_file = xmlfile.XMLFile(self._rt.uuid, conf)
         self._log.debug('initializing container %r runtime %r',
                         self.UUIDString(), self._rt.uuid)
+        self.events = events.Handler(
+            name='Domain(%s)' % self._vm_uuid,
+            parent=events.root)
 
     def destroyFlags(self, flags):
         #  flags are unused

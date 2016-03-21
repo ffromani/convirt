@@ -17,4 +17,19 @@
 #
 # Refer to the README and COPYING files for full details of the license
 #
+from __future__ import absolute_import
 
+from . import doms
+from . import events
+from . import runner
+
+import libvirt
+
+
+def watchdog():
+    found = set(vm_uuid for vm_uuid in runner.get_all())
+    for dom in doms.get_all():
+        if dom.UUIDString() not in found:
+            dom.events.fire(libvirt.VIR_DOMAIN_EVENT_STOPPED,
+                            libvirt.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN,
+                            0)  # unused

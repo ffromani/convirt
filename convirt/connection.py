@@ -28,6 +28,8 @@ from . import config
 from . import domain
 from . import doms
 from . import errors
+from . import events
+from . import monitoring
 from . import runner
 from . import xmlfile
 
@@ -37,15 +39,19 @@ class Connection(object):
     _log = logging.getLogger('convirt.Connection')
 
     def __init__(self):
-        self._event_handlers = {}
+        self.events = events.Handler(
+            name='Connection(%s)' % id(self),
+            parent=events.root
+        )
 
     def close(self):
         """
         Does nothing succesfully
         """
 
-#    def domainEventRegisterAny(self, dom, eventID, cb, opaque):
-#        pass
+    def domainEventRegisterAny(self, dom, eventID, cb, opaque):
+        handler = events.root if dom is None else dom.events
+        handler.register(eventID, cb, opaque)
 
     def listAllDomains(self, flags=0):
         # flags are unused
@@ -70,11 +76,11 @@ class Connection(object):
         return self.lookupByUUIDString(str(uuid.UUID(int=intid)))
 
 #    def getAllDomainStats(self, flags):
-#        pass
-#
+#        return self.domainListGetStats(doms.get_all(), flags)
+
 #    def domainListGetStats(self, doms, flags):
-#        pass
-#
+#        errors.throw()  # TODO
+
     def createXML(self, domxml, flags):
         # flags are unused
         return domain.Domain.create(domxml)
