@@ -110,7 +110,7 @@ class Rkt(runtime.Base):
             Rkt._PATH.cmd(),
             '--uuid-file-save=%s' % self._rkt_uuid_path,
             '--insecure-options=image',  # FIXME
-#            '--net=%s' % network,
+            '--net=%s' % network,
             'run',
             '%s' % image,
             '--memory=%iM' % (self._run_conf.memory_size_mib),
