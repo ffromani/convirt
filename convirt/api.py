@@ -77,9 +77,9 @@ def teardown(clear=False):
 
 
 def configure():
+    global _runtimes
     with _lock:
-        if not _ready:
-            raise APIError('setup not yet done')
+        _register()
         for name, rt in _runtimes.items():
             _log.debug('configuring runtime %r', name)
             rt.configure_runtime()
