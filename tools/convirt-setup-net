@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+
+import argparse
+import logging
+import sys
+
+from convirt.config import network
+import convirt.api
+
+
+_DEFAULT_OVIRT_NET = 'ovirtmgmt'
+_DEFAULT_SUBNET = '10.1.0.0'
+_DEFAULT_MASK = 24
+
+
+def _main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--name', type=str, nargs='?',
+                        default=_DEFAULT_OVIRT_NET,
+                        help='network name to use')
+    parser.add_argument('--bridge', type=str, nargs='?',
+                        default=_DEFAULT_OVIRT_NET,
+                        help='bridge to use')
+    parser.add_argument('--subnet', type=str, nargs='?',
+                        default=_DEFAULT_SUBNET,
+                        help='subnet to use')
+    parser.add_argument('--mask', type=int, nargs='?',
+                        default=_DEFAULT_MASK,
+                        help='netmask to use')
+    args = parser.parse_args()
+
+    runtimes = convirt.api.supported()
+    if not runtimes:
+        logging.warning('no runtimes detected, nothing to do')
+        return
+
+    logging.info('configuring runtimes: %s', runtimes)
+
+    network.update(name=args.name,
+                   bridge=args.bridge,
+                   subnet=args.subnet,
+                   mask=args.mask)
+
+    convirt.api.configure()
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+    _main()
