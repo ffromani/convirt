@@ -1,0 +1,16 @@
+- sudo support
+	- sudo configuration notes
+- enable accounting at start time
+- api.py is a poor and almost meaningless name
+- duplication in config/*.py submodules
+- liveness monitoring is synchronous
+	- we should have another event loop +
+	  worker pool, it is not OK to piggyback
+	  on bulk stats.
+- events
+	- depends on monitoring
+	- see `events' branch
+- stats reporting
+	- depends on monitoring
+- tests:
+	- malformed XMLs for network and images
