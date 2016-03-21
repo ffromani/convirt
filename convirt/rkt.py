@@ -190,7 +190,7 @@ class Network(object):
             self._log.info('config: no update needed, save skipped')
         else:
             with open(self.path, 'wt') as dst:
-                json.dump(self._data, dst)
+                json.dump(self._data, dst, indent=2, sort_keys=True)
 
     def clear(self):
         runtime.rm_file(self.path)
