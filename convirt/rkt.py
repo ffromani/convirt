@@ -62,7 +62,7 @@ class Rkt(runtime.Base):
         self._rkt_uuid = None
 
     @classmethod
-    def setup_runtime(cls):
+    def configure_runtime(cls):
         conf = network.current()
         with Network() as net:
             net.update(conf)
