@@ -162,6 +162,17 @@ class RunnerTests(testlib.TestCase):
         with monkey.patch_scope([(runner, 'call', _fake_call)]):
             runner.start(['/bin/sleep', '42m'])
 
+    def test_call_fails(self):
+        conf = convirt.config.environ.current()
+        conf.use_sudo = True
+        runner = convirt.runner.Runner(self.unit_name, conf)
+        _false = convirt.command.Path('false')
+        with monkey.patch_scope([(convirt.runner, '_SUDO', _false)]):
+            self.assertRaises(convirt.runner.OperationFailed,
+                              runner.start,
+                              ['/bin/sleep', '42s'],
+            )
+
     def test_stop(self):
 
         def _fake_call(cmd):
