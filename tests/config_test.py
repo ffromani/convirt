@@ -25,23 +25,31 @@ import convirt.config.environ
 from . import testlib
 
 
-class ConfigTests(testlib.TestCase):
+class ConfigTestsMixin(object):
 
     def setUp(self):
-        self.saved_conf = convirt.config.environ.current()
+        self.saved_conf = self.CONFIG_MODULE.current()
 
     def tearDown(self):
-        convirt.config.environ.setup(self.saved_conf)
+        self.CONFIG_MODULE.setup(self.saved_conf)
 
     def test_default_not_empty(self):
-        conf = convirt.config.environ.current()
+        conf = self.CONFIG_MODULE.current()
         self.assertTrue(conf)
         self.assertGreaterEqual(len(conf), 0)
 
     def test_get(self):
-        self.assertNotRaises(convirt.config.environ.current)
+        self.assertNotRaises(self.CONFIG_MODULE.current)
 
-    def test_update(self):
+    def test_repr(self):
+        self.assertTrue(repr(self.CONFIG_MODULE.current()))
+
+
+class EnvironTests(ConfigTestsMixin, testlib.TestCase):
+
+    CONFIG_MODULE = convirt.config.environ
+
+    def test_setup_new(self):
         conf = convirt.config.environ.Environment(
             uid=42,
             gid=42,
@@ -73,3 +81,39 @@ class ConfigTests(testlib.TestCase):
         convirt.config.environ.setup(conf)
         new_conf = convirt.config.environ.current()
         self.assertEquals(new_conf.use_sudo, ref_value)
+
+
+class NetworkTests(ConfigTestsMixin, testlib.TestCase):
+
+    CONFIG_MODULE = convirt.config.network
+
+    def test_setup_new(self):
+        conf = convirt.config.network.Network(
+            name='convirt-net',
+            bridge='convirt-bridge',
+            subnet='192.168.192.0',
+            mask=24,
+        )
+        self.assertNotRaises(convirt.config.network.setup, conf)
+        self.assertEquals(convirt.config.network.current(), conf)
+        self.assertFalse(convirt.config.network.current() is conf)
+
+    def test_setup(self):
+        conf = convirt.config.network.current()
+        conf.bridge = 'convirt-br'
+        convirt.config.network.setup(conf)
+        self.assertEquals(convirt.config.network.current(), conf)
+        self.assertFalse(convirt.config.network.current() is conf)
+
+    def test_update(self):
+        conf = convirt.config.network.update(name='convnet')
+        self.assertEquals(convirt.config.network.current(), conf)
+        self.assertFalse(convirt.config.network.current() is conf)
+
+    def test_attribute_does_not_disappear(self):
+        conf = convirt.config.network.current()
+        ref_value = conf.subnet
+        del conf['subnet']
+        convirt.config.network.setup(conf)
+        new_conf = convirt.config.network.current()
+        self.assertEquals(new_conf.subnet, ref_value)

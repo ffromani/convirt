@@ -87,12 +87,17 @@ class FunctionsTests(testlib.TestCase):
         self.assertRaises(convirt.api.APIError,
                           convirt.api.teardown)
 
-    def test_teardown_clear(self):
+    def test_teardown_runtime_clear(self):
         convirt.api._runtimes[FakeRuntime.NAME] = FakeRuntime
         convirt.api.setup(register=False)
         convirt.api.teardown(clear=True)
         self.assertTrue(FakeRuntime.teardown_runtime_done)
         self.assertEquals(convirt.api.supported(), frozenset())
+
+    def test_configure_runtime(self):
+        convirt.api._runtimes[FakeRuntime.NAME] = FakeRuntime
+        convirt.api.configure()
+        self.assertTrue(FakeRuntime.configure_runtime_done)
 
 
 class FakeRuntime(object):
@@ -100,6 +105,8 @@ class FakeRuntime(object):
     setup_runtime_done = False
 
     teardown_runtime_done = False
+
+    configure_runtime_done = False
 
     NAME = 'FAKE'
 
@@ -110,3 +117,7 @@ class FakeRuntime(object):
     @classmethod
     def teardown_runtime(cls):
         cls.teardown_runtime_done = True
+
+    @classmethod
+    def configure_runtime(cls):
+        cls.configure_runtime_done = True

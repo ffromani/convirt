@@ -139,6 +139,12 @@ class NetworkTests(testlib.TestCase):
                 net2.load()
                 self.assertEquals(net1, net2)
 
+    def test_load_missing(self):
+        with testlib.named_temp_dir() as tmp_dir:
+            with monkey.patch_scope([(convirt.rkt.Network, 'DIR', tmp_dir)]):
+                net1 = convirt.rkt.Network()
+                self.assertEqual(net1.load(), {})
+
     def test_clear(self):
         with testlib.named_temp_dir() as tmp_dir:
             with monkey.patch_scope([(convirt.rkt.Network, 'DIR', tmp_dir)]):
