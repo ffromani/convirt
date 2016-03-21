@@ -178,8 +178,11 @@ class Network(object):
             self._dirty = True
 
     def load(self):
-        with open(self.path, 'rt') as src:
-            self._data = json.load(src)
+        try:
+            with open(self.path, 'rt') as src:
+                self._data = json.load(src)
+        except IOError:
+            self._log.debug('config: cannot load %r, ignored', self.path)
         return self._data
 
     def save(self, force=False):
