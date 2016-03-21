@@ -43,19 +43,6 @@ def _available():
     return _runtimes
 
 
-def _find_runtimes():
-    rts = {}
-    if rkt.Rkt.available():
-        rts[rkt.Rkt.NAME] = rkt.Rkt
-    return rts
-
-
-def _register():
-    global _runtimes
-    if not _runtimes:
-        _runtimes = _find_runtimes()
-
-
 def supported():
     runtimes = _available()
     return frozenset(list(runtimes.keys()))
@@ -104,3 +91,16 @@ def clear():
     with _lock:
         _runtimes.clear()
         _ready = False
+
+
+def _find_runtimes():
+    rts = {}
+    if rkt.Rkt.available():
+        rts[rkt.Rkt.NAME] = rkt.Rkt
+    return rts
+
+
+def _register():
+    global _runtimes
+    if not _runtimes:
+        _runtimes = _find_runtimes()
