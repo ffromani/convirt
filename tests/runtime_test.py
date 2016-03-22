@@ -41,27 +41,27 @@ class RaisingPath(object):
         raise convirt.command.NotFound()
 
 
-class RuntimeBaseAvailableTests(testlib.TestCase):
+class RuntimeContainerRuntimeAvailableTests(testlib.TestCase):
 
     def test_raising(self):
-        with monkey.patch_scope([(convirt.runtime.Base, '_PATH', RaisingPath())]):
-            self.assertFalse(convirt.runtime.Base.available())
+        with monkey.patch_scope([(convirt.runtimes.ContainerRuntime, '_PATH', RaisingPath())]):
+            self.assertFalse(convirt.runtimes.ContainerRuntime.available())
 
     def test_not_available(self):
-        with monkey.patch_scope([(convirt.runtime.Base, '_PATH',
+        with monkey.patch_scope([(convirt.runtimes.ContainerRuntime, '_PATH',
                                   testlib.NonePath())]):
-            self.assertFalse(convirt.runtime.Base.available())
+            self.assertFalse(convirt.runtimes.ContainerRuntime.available())
 
     def test_available(self):
-        with monkey.patch_scope([(convirt.runtime.Base, '_PATH',
+        with monkey.patch_scope([(convirt.runtimes.ContainerRuntime, '_PATH',
                                   testlib.TruePath())]):
-            self.assertTrue(convirt.runtime.Base.available())
+            self.assertTrue(convirt.runtimes.ContainerRuntime.available())
 
 
-class RuntimeBaseTests(testlib.TestCase):
+class RuntimeContainerRuntimeTests(testlib.TestCase):
 
     def setUp(self):
-        self.base = convirt.runtime.Base(convirt.config.environ.current())
+        self.base = convirt.runtimes.ContainerRuntime(convirt.config.environ.current())
 
     def test_unit_name(self):
         self.assertTrue(self.base.unit_name())  # TODO: improve
@@ -82,23 +82,23 @@ class RuntimeBaseTests(testlib.TestCase):
         self.assertRaises(NotImplementedError, self.base.runtime_name)
 
     def test_setup_runtime(self):
-        self.assertNotRaises(convirt.runtime.Base.setup_runtime())
+        self.assertNotRaises(convirt.runtimes.ContainerRuntime.setup_runtime())
 
     def test_teardown_runtime(self):
-        self.assertNotRaises(convirt.runtime.Base.teardown_runtime())
+        self.assertNotRaises(convirt.runtimes.ContainerRuntime.teardown_runtime())
 
 
-class RuntimeBaseConfigureTests(testlib.TestCase):
+class RuntimeContainerRuntimeConfigureTests(testlib.TestCase):
 
     def setUp(self):
         self.vm_uuid = str(uuid.uuid4())
-        self.base = convirt.runtime.Base(self.vm_uuid)
+        self.base = convirt.runtimes.ContainerRuntime(self.vm_uuid)
 
     def test_missing_content(self):
         root = ET.fromstring(
         """<domain type='kvm' id='2'>
         </domain>""")
-        self.assertRaises(convirt.runtime.ConfigError,
+        self.assertRaises(convirt.runtimes.ConfigError,
                           self.base.configure,
                           root)
 
@@ -119,7 +119,7 @@ class RuntimeBaseConfigureTests(testlib.TestCase):
             </disk>
           </devices>
         </domain>""")
-        self.assertRaises(convirt.runtime.ConfigError,
+        self.assertRaises(convirt.runtimes.ConfigError,
                           self.base.configure,
                           root)
 
@@ -130,7 +130,7 @@ class RuntimeBaseConfigureTests(testlib.TestCase):
           <devices>
           </devices>
         </domain>""")
-        self.assertRaises(convirt.runtime.ConfigError,
+        self.assertRaises(convirt.runtimes.ConfigError,
                           self.base.configure,
                           root)
 
@@ -249,32 +249,3 @@ class RuntimeBaseConfigureTests(testlib.TestCase):
         self.assertEquals(conf.network, "ovirtmgmt")
 
     # TODO: test error paths in configure()
-
-
-class RMFileTests(testlib.TestCase):
-
-    def test_rm_file_once(self):
-        with testlib.named_temp_dir() as tmp_dir:
-            path = os.path.join(tmp_dir, "foobar")
-            with open(path, 'wt') as f:
-                f.write('%s\n' % str(uuid.uuid4()))
-            self.assertEquals(os.listdir(tmp_dir), ['foobar'])
-            convirt.runtime.rm_file(path)
-            self.assertEquals(os.listdir(tmp_dir), [])
-
-    def test_rm_file_twice(self):
-        with testlib.named_temp_dir() as tmp_dir:
-            path = os.path.join(tmp_dir, "foobar")
-            with open(path, 'wt') as f:
-                f.write('%s\n' % str(uuid.uuid4()))
-            self.assertEquals(os.listdir(tmp_dir), ['foobar'])
-            convirt.runtime.rm_file(path)
-            self.assertEquals(os.listdir(tmp_dir), [])
-            self.assertNotRaises(convirt.runtime.rm_file, path)
-            self.assertEquals(os.listdir(tmp_dir), [])
-
-    def test_rm_file_fails(self):
-        self.assertNotEqual(os.geteuid(), 0)
-        self.assertRaises(OSError,
-                          convirt.runtime.rm_file,
-                          '/var/log/lastlog')

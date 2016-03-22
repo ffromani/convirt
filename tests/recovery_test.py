@@ -23,7 +23,6 @@ import uuid
 import xml.etree.ElementTree as ET
 
 import convirt
-import convirt.api
 import convirt.config
 import convirt.config.environ
 import convirt.doms
@@ -59,10 +58,10 @@ class RecoveryTests(testlib.FakeRunnableTestCase):
                 xf = convirt.xmlfile.XMLFile(vm_uuid,
                                              convirt.config.environ.current())
                 save_xml(xf, testlib.minimal_dom_xml(vm_uuid=vm_uuid))
-                with monkey.patch_scope([(convirt.runner, 'get_all',
-                                          _fake_get_all),
-                                         (convirt.api, 'create', _fake_create),
-                                        ]):
+                with monkey.patch_scope([
+                    (convirt.runner, 'get_all', _fake_get_all),
+                    (convirt.runtime, 'create', _fake_create),
+                ]):
                     conn = convirt.openAuth('convirt:///system', None)
                     recovered_doms = convirt.recoveryAllDomains()
                     self.assertEquals(len(recovered_doms), 1)
@@ -91,7 +90,7 @@ class RecoveryTests(testlib.FakeRunnableTestCase):
 
                 with monkey.patch_scope([
                     (convirt.runner, 'get_all', _fake_get_all),
-                    (convirt.api, 'create', _fake_create),
+                    (convirt.runtime, 'create', _fake_create),
                 ]):
                     conn = convirt.openAuth('convirt:///system', None)
                     recovered_doms = convirt.recoveryAllDomains()

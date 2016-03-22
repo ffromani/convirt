@@ -20,15 +20,18 @@ from __future__ import absolute_import
 #
 
 from contextlib import contextmanager
+import os
+import os.path
 import shutil
 import tempfile
 import uuid
 import unittest
 
-import convirt.api
 import convirt.command
 import convirt.config
 import convirt.config.environ
+import convirt.runtime
+import convirt.runtimes
 
 from . import monkey
 
@@ -100,17 +103,23 @@ class RunnableTestCase(TestCase):
     def setUp(self):
         self.guid = uuid.uuid4()
         self.run_dir = tempfile.mkdtemp()
+        with open(
+            os.path.join(self.run_dir,
+                         convirt.runtimes.rkt.Network.NAME), 'wt'
+        ) as f:
+            f.write('{}')
         paths = ['.', './tests']
         fake_mctl = convirt.command.Path('true')
         fake_rkt = convirt.command.Path('fake-rkt', paths=paths)
         fake_sdrun = convirt.command.Path('fake-systemd-run', paths=paths)
         self.patch = monkey.Patch([
-            (convirt.rkt.Rkt, '_PATH', fake_rkt),
-            (convirt.rkt, '_MACHINECTL', fake_mctl),
+            (convirt.runtimes.rkt.Network, 'DIR', self.run_dir),
+            (convirt.runtimes.rkt.Rkt, '_PATH', fake_rkt),
+            (convirt.runtimes.rkt, '_MACHINECTL', fake_mctl),
             (convirt.runner, '_SYSTEMD_RUN', fake_sdrun)])
         self.patch.apply()
-        convirt.api.clear()
-        convirt.api.supported()  # FIXME
+        convirt.runtime.clear()
+        convirt.runtime.configure()
 
     def tearDown(self):
         self.patch.revert()
@@ -127,9 +136,13 @@ class FakeRunnableTestCase(TestCase):
             self.runners.append(rt)
             return rt
 
-        with monkey.patch_scope([(convirt.api, 'create', _fake_create)]):
-            self.dom = convirt.domain.Domain(minimal_dom_xml(),
-                                             convirt.config.environ.current())
+        with monkey.patch_scope(
+            [(convirt.runtime, 'create', _fake_create)]
+        ):
+            self.dom = convirt.domain.Domain(
+                minimal_dom_xml(),
+                convirt.config.environ.current()
+            )
 
 
 class FakeRunner(object):

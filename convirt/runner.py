@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 #
 # Copyright 2016 Red Hat, Inc.
 #
@@ -18,7 +17,9 @@ from __future__ import absolute_import
 #
 # Refer to the README and COPYING files for full details of the license
 #
+from __future__ import absolute_import
 
+import errno
 import logging
 import os
 import os.path
@@ -147,3 +148,14 @@ def _is_running_unit(loaded, active, sub):
         active == 'active' and
         sub == 'running'
     )
+
+
+def rm_file(target):
+    try:
+        os.unlink(target)
+    except OSError as e:
+        if e.errno == errno.ENOENT:
+            logging.warning("file %r already removed", target)
+        else:
+            logging.exception("removing file %r failed", target)
+            raise
