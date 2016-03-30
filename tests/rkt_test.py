@@ -20,6 +20,7 @@
 from __future__ import absolute_import
 
 import os.path
+import time
 import uuid
 import unittest
 import xml.etree.ElementTree as ET
@@ -27,6 +28,7 @@ import xml.etree.ElementTree as ET
 import convirt
 import convirt.config
 import convirt.config.environ
+import convirt.runner
 import convirt.runtimes as rts
 
 from . import monkey
@@ -92,6 +94,17 @@ class RktTests(testlib.RunnableTestCase):
         for arg in rkt.command_line():
             self.assertNotIn('"', arg)
 
+    def test_read_uuid_fails(self):
+
+        def _fail_read(*args):
+            raise IOError('fake error')
+
+        with monkey.patch_scope([
+            (time, 'sleep', lambda _: None),
+        ]):
+            rkt = rts.rkt.Rkt(testlib.make_conf(run_dir=self.run_dir),
+                              read_file=_fail_read)
+            self.assertRaises(convirt.runner.OperationFailed, rkt.resync)
 
 
 class NetworkTests(testlib.TestCase):

@@ -30,6 +30,6 @@ def watchdog():
     found = set(vm_uuid for vm_uuid in runner.get_all())
     for dom in doms.get_all():
         if dom.UUIDString() not in found:
-            dom.events.fire(libvirt.VIR_DOMAIN_EVENT_STOPPED,
-                            libvirt.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN,
-                            0)  # unused
+            dom.events.fire(libvirt.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
+                            libvirt.VIR_DOMAIN_EVENT_STOPPED,
+                            libvirt.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN)

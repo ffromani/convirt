@@ -46,9 +46,12 @@ class Handler(object):
         self._lock = threading.Lock()
         self.events = collections.defaultdict(list)
 
-    def register(self, event_id, cb, opaque):
+    def register(self, event_id, func, opaque):
         with self._lock:
-            self.events[event_id].append(Callback(cb, opaque))
+            cb = Callback(func, opaque)
+            # TODO: debug?
+            self._log.info('[%s] %i -> %s', self._name, event_id, cb)
+            self.events[event_id].append(Callback(func, opaque))
 
     def fire(self, event_id, *args):
         for cb in self.get_callbacks(event_id):

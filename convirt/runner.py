@@ -159,3 +159,8 @@ def rm_file(target):
         else:
             logging.exception("removing file %r failed", target)
             raise
+
+
+def read_file(path):
+    with open(path, 'rt') as f:
+        return f.read()

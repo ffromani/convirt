@@ -52,8 +52,9 @@ class Rkt(ContainerRuntime):
 
     _DELAY = 1  # seconds  TODO: make config item?
 
-    def __init__(self, conf, rt_uuid=None):
+    def __init__(self, conf, rt_uuid=None, read_file=runner.read_file):
         super(Rkt, self).__init__(conf, rt_uuid)
+        self._read_file = read_file
         rkt_uuid_file = '%s.%s' % (self._uuid, self.NAME)
         self._rkt_uuid_path = os.path.join(
             self._conf.run_dir, rkt_uuid_file)
@@ -137,10 +138,10 @@ class Rkt(ContainerRuntime):
         raise runner.OperationFailed('failed to read rkt UUID')
 
     def _read_rkt_uuid(self, path):
-        with open(path, 'rt') as f:
-            self._rkt_uuid = f.read().strip()
-            self._log.info('rkt container %s rkt_uuid %s',
-                            self._uuid, self._rkt_uuid)
+        data = self._read_file(path)
+        self._rkt_uuid = data.strip()
+        self._log.info('rkt container %s rkt_uuid %s',
+                        self._uuid, self._rkt_uuid)
 
 
 class Network(object):
