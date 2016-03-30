@@ -31,6 +31,7 @@ import convirt.command
 import convirt.config
 import convirt.config.environ
 import convirt.runtime
+import convirt.runtimes
 
 from . import monkey
 from . import testlib
@@ -41,7 +42,7 @@ class RaisingPath(object):
         raise convirt.command.NotFound()
 
 
-class RuntimeContainerRuntimeAvailableTests(testlib.TestCase):
+class RuntimeContainerAvailabilityTests(testlib.TestCase):
 
     def test_raising(self):
         with monkey.patch_scope([(convirt.runtimes.ContainerRuntime, '_PATH', RaisingPath())]):
@@ -58,7 +59,7 @@ class RuntimeContainerRuntimeAvailableTests(testlib.TestCase):
             self.assertTrue(convirt.runtimes.ContainerRuntime.available())
 
 
-class RuntimeContainerRuntimeTests(testlib.TestCase):
+class RuntimeContainerUnimplementedAPITests(testlib.TestCase):
 
     def setUp(self):
         self.base = convirt.runtimes.ContainerRuntime(convirt.config.environ.current())
@@ -87,8 +88,11 @@ class RuntimeContainerRuntimeTests(testlib.TestCase):
     def test_teardown_runtime(self):
         self.assertNotRaises(convirt.runtimes.ContainerRuntime.teardown_runtime())
 
+    def test_configure_runtime(self):
+        self.assertNotRaises(convirt.runtimes.ContainerRuntime.configure_runtime())
 
-class RuntimeContainerRuntimeConfigureTests(testlib.TestCase):
+
+class RuntimeContainerConfigureTests(testlib.TestCase):
 
     def setUp(self):
         self.vm_uuid = str(uuid.uuid4())
@@ -249,3 +253,53 @@ class RuntimeContainerRuntimeConfigureTests(testlib.TestCase):
         self.assertEquals(conf.network, "ovirtmgmt")
 
     # TODO: test error paths in configure()
+
+
+class RuntimeAPITests(testlib.RunnableTestCase):
+
+    def test_create_supported(self):
+        conf = convirt.config.environ.current()
+        self.assertTrue(convirt.runtime.create('rkt', conf))
+
+    def test_create_unsupported(self):
+        conf = convirt.config.environ.current()
+        self.assertRaises(convirt.runtime.Unsupported,
+                          convirt.runtime.create,
+                          'docker',
+                          conf)
+
+    def test_supported(self):
+        self.assertIn('rkt', convirt.runtime.supported())
+
+    def test_setup(self):
+        convirt.runtime.clear()
+        self.assertEqual(convirt.runtime.supported(), frozenset())
+        self.assertNotRaises(convirt.runtime.setup())
+        self.assertTrue(convirt.runtime.supported())
+
+    def test_setup_twice(self):
+        convirt.runtime.clear()
+        self.assertEqual(convirt.runtime.supported(), frozenset())
+        self.assertNotRaises(convirt.runtime.setup())
+        self.assertRaises(convirt.runtime.SetupError,
+                          convirt.runtime.setup)
+
+    def test_teardown(self):
+        convirt.runtime.clear()
+        self.assertEqual(convirt.runtime.supported(), frozenset())
+        self.assertNotRaises(convirt.runtime.setup())
+        self.assertNotRaises(convirt.runtime.teardown())
+        self.assertEqual(convirt.runtime.supported(), frozenset())
+
+    def test_teardown_without_setup(self):
+        convirt.runtime.clear()
+        self.assertRaises(convirt.runtime.SetupError,
+                          convirt.runtime.teardown)
+
+    def test_teardown_twice(self):
+        convirt.runtime.clear()
+        self.assertEqual(convirt.runtime.supported(), frozenset())
+        self.assertNotRaises(convirt.runtime.setup())
+        self.assertNotRaises(convirt.runtime.teardown())
+        self.assertRaises(convirt.runtime.SetupError,
+                          convirt.runtime.teardown)
