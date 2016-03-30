@@ -1,7 +1,6 @@
 - sudo support
 	- sudo configuration notes
 - enable accounting at start time
-- api.py is a poor and almost meaningless name
 - duplication in config/*.py submodules
 - liveness monitoring is synchronous
 	- we should have another event loop +
