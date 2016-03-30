@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 #
 # Copyright 2016 Red Hat, Inc.
 #
@@ -18,6 +17,7 @@ from __future__ import absolute_import
 #
 # Refer to the README and COPYING files for full details of the license
 #
+from __future__ import absolute_import
 
 import collections
 import json
@@ -26,17 +26,17 @@ import os
 import os.path
 import time
 
-from .config import network
-from . import command
-from . import runner
-from . import runtime
+from ..config import network
+from .. import command
+from .. import runner
+from . import ContainerRuntime
 
 
 _MACHINECTL = command.Path('machinectl')
 _RKT = command.Path('rkt')
 
 
-class Rkt(runtime.Base):
+class Rkt(ContainerRuntime):
 
     _log = logging.getLogger('convirt.runtime.Rkt')
 
@@ -76,7 +76,7 @@ class Rkt(runtime.Base):
             raise runner.OperationFailed('already running')
 
         cmd = self.command_line(target)
-        runtime.rm_file(self._rkt_uuid_path)
+        runner.rm_file(self._rkt_uuid_path)
         self._runner.start(cmd)
         self.resync()
 
@@ -193,7 +193,7 @@ class Network(object):
                 json.dump(self._data, dst, indent=2, sort_keys=True)
 
     def clear(self):
-        runtime.rm_file(self.path)
+        runner.rm_file(self.path)
 
     # test/debug purposes
     def get_conf(self):

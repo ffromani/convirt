@@ -5,7 +5,7 @@ import logging
 import sys
 
 from convirt.config import network
-import convirt.api
+import convirt.runtime
 
 
 _DEFAULT_OVIRT_NET = 'ovirtmgmt'
@@ -29,7 +29,7 @@ def _main():
                         help='netmask to use')
     args = parser.parse_args()
 
-    runtimes = convirt.api.supported()
+    runtimes = convirt.runtime.supported()
     if not runtimes:
         logging.warning('no runtimes detected, nothing to do')
         return

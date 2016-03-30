@@ -26,11 +26,10 @@ import unittest
 import libvirt
 
 import convirt
-import convirt.api
 import convirt.command
 import convirt.domain
 import convirt.doms
-import convirt.rkt
+import convirt.runtimes.rkt
 
 
 from . import monkey
@@ -136,7 +135,7 @@ class RegistrationTests(testlib.RunnableTestCase):
         self.assertEquals(convirt.doms.get_all(), [])
         self.assertRaises(libvirt.libvirtError, dom.destroy)
 
-    def test_destroy_unregistered_forcefullt(self):
+    def test_destroy_unregistered_forcefully(self):
         with testlib.named_temp_dir() as tmp_dir:
             conf = testlib.make_conf(run_dir=tmp_dir)
             dom = convirt.domain.Domain.create(
@@ -157,7 +156,7 @@ class RecoveryTests(testlib.TestCase):
 
         with testlib.named_temp_dir() as tmp_dir:
             conf = testlib.make_conf(run_dir=tmp_dir)
-            with monkey.patch_scope([(convirt.api, 'create',
+            with monkey.patch_scope([(convirt.runtime, 'create',
                                       self._fake_create)]):
                 dom = convirt.domain.Domain.recover(
                     vm_uuid, testlib.minimal_dom_xml(vm_uuid), conf)

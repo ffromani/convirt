@@ -27,11 +27,11 @@ import xml.etree.ElementTree as ET
 import libvirt
 
 
-from . import api
 from . import config
 from . import errors
 from . import doms
 from . import runner
+from . import runtime
 from . import xmlfile
 
 
@@ -59,10 +59,10 @@ class Domain(object):
         self._xmldesc = xmldesc
         self._root = ET.fromstring(xmldesc)
         self._vm_uuid = uuid.UUID(self._root.find('./uuid').text)
-        runtime = self._root.find('./devices/emulator').text
+        rt_name = self._root.find('./devices/emulator').text
         self._log.debug('initializing %r container %r',
-                        runtime, self.UUIDString())
-        self._rt = api.create(runtime, conf=conf, rt_uuid=rt_uuid)
+                        rt_name, self.UUIDString())
+        self._rt = runtime.create(rt_name, conf=conf, rt_uuid=rt_uuid)
         self._xml_file = xmlfile.XMLFile(self._rt.uuid, conf)
         self._log.debug('initializing container %r runtime %r',
                         self.UUIDString(), self._rt.uuid)

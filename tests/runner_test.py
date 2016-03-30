@@ -192,3 +192,32 @@ class RunnerTests(testlib.TestCase):
     def test_stats_pristine(self):
         stats = list(convirt.runner.Runner.stats())
         self.assertEqual(stats, [])
+
+
+class RMFileTests(testlib.TestCase):
+
+    def test_rm_file_once(self):
+        with testlib.named_temp_dir() as tmp_dir:
+            path = os.path.join(tmp_dir, "foobar")
+            with open(path, 'wt') as f:
+                f.write('%s\n' % str(uuid.uuid4()))
+            self.assertEquals(os.listdir(tmp_dir), ['foobar'])
+            convirt.runner.rm_file(path)
+            self.assertEquals(os.listdir(tmp_dir), [])
+
+    def test_rm_file_twice(self):
+        with testlib.named_temp_dir() as tmp_dir:
+            path = os.path.join(tmp_dir, "foobar")
+            with open(path, 'wt') as f:
+                f.write('%s\n' % str(uuid.uuid4()))
+            self.assertEquals(os.listdir(tmp_dir), ['foobar'])
+            convirt.runner.rm_file(path)
+            self.assertEquals(os.listdir(tmp_dir), [])
+            self.assertNotRaises(convirt.runner.rm_file, path)
+            self.assertEquals(os.listdir(tmp_dir), [])
+
+    def test_rm_file_fails(self):
+        self.assertNotEqual(os.geteuid(), 0)
+        self.assertRaises(OSError,
+                          convirt.runner.rm_file,
+                          '/var/log/lastlog')

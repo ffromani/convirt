@@ -121,7 +121,9 @@ class ConnectionAPITests(testlib.FakeRunnableTestCase):
         conn = convirt.openAuth('convirt:///system', None)
         with testlib.named_temp_dir() as tmp_dir:
             with testlib.global_conf(run_dir=tmp_dir):
-                with monkey.patch_scope([(convirt.api, 'create', _fake_create)]):
+                with monkey.patch_scope(
+                    [(convirt.runtime, 'create', _fake_create)]
+                ):
                     dom = conn.createXML(testlib.minimal_dom_xml(), 0)
 
         self.assertTrue(dom)
