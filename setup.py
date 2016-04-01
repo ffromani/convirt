@@ -31,7 +31,10 @@ setup(name='convirt',
       author_email = 'fromani@redhat.com',
       url='TODO',
       download_url='TODO',
-      scripts=['tools/convirt-setup-net'],
+      scripts=[
+        'tools/convirt-setup-net',
+        'tools/convirt-ls-runtimes',
+      ],
       packages=['convirt', 'convirt.config', 'convirt.runtimes'],
       py_modules=['cgview'],
       install_requires=[
