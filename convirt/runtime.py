@@ -59,16 +59,25 @@ _log = logging.getLogger('convirt.runtime')
 
 
 def create(rt, *args, **kwargs):
+    global _lock
     global _runtimes
-    if rt in _runtimes:
-        _log.debug('creating container with runtime %r', rt)
-        return _runtimes[rt](*args, **kwargs)
-    raise Unsupported(rt)
+
+    with _lock:
+        klass = _runtimes.get(rt, None)
+
+    if inst is None:
+        raise Unsupported(rt)
+
+    _log.debug('creating container with runtime %r', klass.Name)
+    return klass(*args, **kwargs)
 
 
 def supported():
+    global _lock
     global _runtimes
-    return frozenset(list(_runtimes.keys()))
+    with _lock:
+        _register()
+        return frozenset(list(_runtimes.keys()))
 
 
 def setup():
