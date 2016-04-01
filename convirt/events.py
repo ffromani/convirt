@@ -55,12 +55,17 @@ class Handler(object):
             self._log.info('[%s] %i -> %s', self._name, event_id, cb)
             self.events[event_id].append(cb)
 
-    def fire(self, event_id, *args):
+    def fire(self, event_id, dom, *args):
         for cb in self.get_callbacks(event_id):
             arguments = list(args)
             if cb.args is not None:
                 arguments.extend(cb.args)
-            return cb.body(cb.conn, cb.dom, *arguments)
+            domain = cb.dom
+            if dom is not None:
+                domain = dom
+            self._log.debug('firing: %s(%s, %s, %s)',
+                            cb.body, cb.conn, domain, arguments)
+            return cb.body(cb.conn, domain, *arguments)
 
     def get_callbacks(self, event_id):
         with self._lock:
@@ -89,6 +94,6 @@ class Handler(object):
 root = Handler(name='root')
 
 
-def fire(event_id, *args):
+def fire(event_id, dom, *args):
     global root
-    root.fire(event_id, *args)
+    root.fire(event_id, dom, *args)

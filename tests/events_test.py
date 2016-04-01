@@ -96,7 +96,7 @@ class ConnectionTests(testlib.TestCase):
 
         self.assertFalse(all(called))
         for idx in range(NUM):
-            convirt.events.fire(evt, idx)
+            convirt.events.fire(evt, None, idx)
         self.assertTrue(all(called))
 
     def test_fire_unknown_event(self):

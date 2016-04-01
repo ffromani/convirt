@@ -40,6 +40,7 @@ def watchdog():
             logging.warning(
                 'container %r no longer running, sending STOP event', rt_uuid)
             dom.events.fire(libvirt.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
+                            dom,
                             libvirt.VIR_DOMAIN_EVENT_STOPPED,
                             libvirt.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN)
 
