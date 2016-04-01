@@ -41,7 +41,7 @@ def _main():
                    subnet=args.subnet,
                    mask=args.mask)
 
-    convirt.api.configure()
+    convirt.runtime.configure()
 
 
 if __name__ == "__main__":
