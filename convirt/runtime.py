@@ -65,18 +65,20 @@ def create(rt, *args, **kwargs):
     with _lock:
         klass = _runtimes.get(rt, None)
 
-    if inst is None:
+    if klass is None:
         raise Unsupported(rt)
 
-    _log.debug('creating container with runtime %r', klass.Name)
+    _log.debug('creating container with runtime %r', klass.NAME)
     return klass(*args, **kwargs)
 
 
-def supported():
+# FIXME: testing (half-hack)
+def supported(register=True):
     global _lock
     global _runtimes
     with _lock:
-        _register()
+        if register:
+            _register()
         return frozenset(list(_runtimes.keys()))
 
 

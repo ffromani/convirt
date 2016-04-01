@@ -165,27 +165,35 @@ class RuntimeAPITests(testlib.RunnableTestCase):
                           conf)
 
     def test_supported(self):
-        self.assertIn('rkt', convirt.runtime.supported())
+        self.assertIn('rkt', convirt.runtime.supported(register=False))
 
     def test_setup(self):
         convirt.runtime.clear()
-        self.assertEqual(convirt.runtime.supported(), frozenset())
+        self.assertEqual(
+            convirt.runtime.supported(register=False),
+            frozenset())
         self.assertNotRaises(convirt.runtime.setup())
-        self.assertTrue(convirt.runtime.supported())
+        self.assertTrue(convirt.runtime.supported(register=False))
 
     def test_setup_twice(self):
         convirt.runtime.clear()
-        self.assertEqual(convirt.runtime.supported(), frozenset())
+        self.assertEqual(
+            convirt.runtime.supported(register=False),
+            frozenset())
         self.assertNotRaises(convirt.runtime.setup())
         self.assertRaises(convirt.runtime.SetupError,
                           convirt.runtime.setup)
 
     def test_teardown(self):
         convirt.runtime.clear()
-        self.assertEqual(convirt.runtime.supported(), frozenset())
+        self.assertEqual(
+            convirt.runtime.supported(register=False),
+            frozenset())
         self.assertNotRaises(convirt.runtime.setup())
         self.assertNotRaises(convirt.runtime.teardown())
-        self.assertEqual(convirt.runtime.supported(), frozenset())
+        self.assertEqual(
+            convirt.runtime.supported(register=False),
+            frozenset())
 
     def test_teardown_without_setup(self):
         convirt.runtime.clear()
@@ -194,7 +202,9 @@ class RuntimeAPITests(testlib.RunnableTestCase):
 
     def test_teardown_twice(self):
         convirt.runtime.clear()
-        self.assertEqual(convirt.runtime.supported(), frozenset())
+        self.assertEqual(
+            convirt.runtime.supported(register=False),
+            frozenset())
         self.assertNotRaises(convirt.runtime.setup())
         self.assertNotRaises(convirt.runtime.teardown())
         self.assertRaises(convirt.runtime.SetupError,
