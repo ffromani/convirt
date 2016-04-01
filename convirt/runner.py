@@ -148,19 +148,3 @@ def _is_running_unit(loaded, active, sub):
         active == 'active' and
         sub == 'running'
     )
-
-
-def rm_file(target):
-    try:
-        os.unlink(target)
-    except OSError as e:
-        if e.errno == errno.ENOENT:
-            logging.warning("file %r already removed", target)
-        else:
-            logging.exception("removing file %r failed", target)
-            raise
-
-
-def read_file(path):
-    with open(path, 'rt') as f:
-        return f.read()

@@ -19,12 +19,10 @@
 #
 from __future__ import absolute_import
 
-import errno
 import os
 import subprocess
 import tempfile
 import uuid
-import unittest
 import xml.etree.ElementTree as ET
 
 import convirt
@@ -193,49 +191,3 @@ class RunnerTests(testlib.TestCase):
     def test_stats_pristine(self):
         stats = list(convirt.runner.Runner.stats())
         self.assertEqual(stats, [])
-
-
-class ReadFileTests(testlib.TestCase):
-
-    def test_read_existing_file(self):
-        content = str(uuid.uuid4())
-        with tempfile.NamedTemporaryFile() as f:
-            f.write(content.encode('ascii'))
-            f.flush()
-            self.assertEqual(content,
-                             convirt.runner.read_file(f.name))
-
-    def test_read_unexisting_file(self):
-        path = '/most/likely/does/not/exist'
-        self.assertRaises(IOError,
-                          convirt.runner.read_file,
-                          path)
-
-
-class RMFileTests(testlib.TestCase):
-
-    def test_rm_file_once(self):
-        with testlib.named_temp_dir() as tmp_dir:
-            path = os.path.join(tmp_dir, "foobar")
-            with open(path, 'wt') as f:
-                f.write('%s\n' % str(uuid.uuid4()))
-            self.assertEquals(os.listdir(tmp_dir), ['foobar'])
-            convirt.runner.rm_file(path)
-            self.assertEquals(os.listdir(tmp_dir), [])
-
-    def test_rm_file_twice(self):
-        with testlib.named_temp_dir() as tmp_dir:
-            path = os.path.join(tmp_dir, "foobar")
-            with open(path, 'wt') as f:
-                f.write('%s\n' % str(uuid.uuid4()))
-            self.assertEquals(os.listdir(tmp_dir), ['foobar'])
-            convirt.runner.rm_file(path)
-            self.assertEquals(os.listdir(tmp_dir), [])
-            self.assertNotRaises(convirt.runner.rm_file, path)
-            self.assertEquals(os.listdir(tmp_dir), [])
-
-    def test_rm_file_fails(self):
-        self.assertNotEqual(os.geteuid(), 0)
-        self.assertRaises(OSError,
-                          convirt.runner.rm_file,
-                          '/var/log/lastlog')

@@ -28,6 +28,7 @@ import time
 
 from ..config import network
 from .. import command
+from .. import fs
 from .. import runner
 from . import ContainerRuntime
 
@@ -52,7 +53,7 @@ class Rkt(ContainerRuntime):
 
     _DELAY = 1  # seconds  TODO: make config item?
 
-    def __init__(self, conf, rt_uuid=None, read_file=runner.read_file):
+    def __init__(self, conf, rt_uuid=None, read_file=fs.read_file):
         super(Rkt, self).__init__(conf, rt_uuid)
         self._read_file = read_file
         rkt_uuid_file = '%s.%s' % (self._uuid, self.NAME)
@@ -77,7 +78,7 @@ class Rkt(ContainerRuntime):
             raise runner.OperationFailed('already running')
 
         cmd = self.command_line(target)
-        runner.rm_file(self._rkt_uuid_path)
+        fs.rm_file(self._rkt_uuid_path)
         self._runner.start(cmd)
         self.resync()
 
@@ -194,7 +195,7 @@ class Network(object):
                 json.dump(self._data, dst, indent=2, sort_keys=True)
 
     def clear(self):
-        runner.rm_file(self.path)
+        fs.rm_file(self.path)
 
     # test/debug purposes
     def get_conf(self):

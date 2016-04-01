@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016 Red Hat, Inc.
+# Copyright 2016 Red Hat, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published
@@ -19,22 +19,22 @@
 #
 from __future__ import absolute_import
 
-from . import doms
-from . import events
-from . import runner
-
-import libvirt
+import errno
+import logging
+import os
 
 
-def watchdog():
-    # set for fast __contains__, the get_all() return value
-    # should never have duplicate anyway
-    found = set(vm_uuid for vm_uuid in runner.get_all())
-    for dom in doms.get_all():
-        if dom.UUIDString() not in found:
-            dom.events.fire(libvirt.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
-                            libvirt.VIR_DOMAIN_EVENT_STOPPED,
-                            libvirt.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN)
+def rm_file(target):
+    try:
+        os.unlink(target)
+    except OSError as e:
+        if e.errno == errno.ENOENT:
+            logging.warning("file %r already removed", target)
+        else:
+            logging.exception("removing file %r failed", target)
+            raise
 
 
-# TODO: poll container stats (use cgview)            
+def read_file(path):
+    with open(path, 'rt') as f:
+        return f.read()

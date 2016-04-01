@@ -25,7 +25,7 @@ import xml.etree.ElementTree as ET
 
 import six
 
-from . import runner
+from . import fs
 
 
 class UnconfiguredXML(Exception):
@@ -70,4 +70,4 @@ class XMLFile(object):
 
     def clear(self):
         self._log.debug('clearing cached XML for container %s', self._name)
-        runner.rm_file(self.path)
+        fs.rm_file(self.path)
