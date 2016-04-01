@@ -32,7 +32,7 @@ setup(name='convirt',
       url='TODO',
       download_url='TODO',
       scripts=['tools/convirt-setup-net'],
-      packages=['convirt', 'convirt.config'],
+      packages=['convirt', 'convirt.config', 'convirt.runtimes'],
       py_modules=['cgview'],
       install_requires=[
         "libvirt-python",
