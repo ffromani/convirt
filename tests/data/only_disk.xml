@@ -1,0 +1,15 @@
+<domain type='kvm' id='2'>
+          <devices>
+            <disk type='file' device='disk' snapshot='no'>
+              <driver name='qemu' type='raw' cache='none' error_policy='stop' io='threads'/>
+              <source file='/random/path/to/disk/image'>
+                <seclabel model='selinux' labelskip='yes'/>
+              </source>
+              <backingStore/>
+              <target dev='vdb' bus='virtio'/>
+              <serial>90bece76-2df6-4a88-bfc8-f6f7461b7b8b</serial>
+              <alias name='virtio-disk1'/>
+              <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
+            </disk>
+          </devices>
+        </domain>

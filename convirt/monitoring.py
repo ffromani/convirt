@@ -20,7 +20,6 @@
 from __future__ import absolute_import
 
 from . import doms
-from . import events
 from . import runner
 
 import libvirt
@@ -37,4 +36,4 @@ def watchdog():
                             libvirt.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN)
 
 
-# TODO: poll container stats (use cgview)            
+# TODO: poll container stats (use cgview)

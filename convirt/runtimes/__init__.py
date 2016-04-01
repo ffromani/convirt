@@ -20,17 +20,10 @@
 from __future__ import absolute_import
 
 import collections
-import errno
 import logging
-import os
-import os.path
-import subprocess
-import threading
-import time
 import uuid
 
 from .. import command
-from .. import config
 from .. import runner
 
 

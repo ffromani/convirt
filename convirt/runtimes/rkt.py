@@ -19,7 +19,6 @@
 #
 from __future__ import absolute_import
 
-import collections
 import json
 import logging
 import os
@@ -134,7 +133,7 @@ class Rkt(ContainerRuntime):
                 time.sleep(self._DELAY)
             else:
                 self._log.info('read rkt UUID at try %i/%i',
-                                i+1, self._TRIES)
+                               i+1, self._TRIES)
                 return
         raise runner.OperationFailed('failed to read rkt UUID')
 
@@ -142,7 +141,7 @@ class Rkt(ContainerRuntime):
         data = self._read_file(path)
         self._rkt_uuid = data.strip()
         self._log.info('rkt container %s rkt_uuid %s',
-                        self._uuid, self._rkt_uuid)
+                       self._uuid, self._rkt_uuid)
 
 
 class Network(object):

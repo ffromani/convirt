@@ -19,10 +19,6 @@
 #
 from __future__ import absolute_import
 
-
-import uuid
-import unittest
-
 import libvirt
 
 import convirt
@@ -42,7 +38,6 @@ class ConnectionTests(testlib.TestCase):
         convirt.events.root.clear()
 
     def test_without_registered(self):
-        conn = convirt.connection.Connection()
         self.assertEquals(tuple(sorted(convirt.events.root.registered)),
                           tuple())
 
@@ -67,16 +62,17 @@ class ConnectionTests(testlib.TestCase):
     def test_register_specific_dom(self):
         evt = libvirt.VIR_DOMAIN_EVENT_ID_LIFECYCLE
 
-        called  = [False]
+        called = [False]
+
         def _cb(*args, **kwargs):
             called[0] = True
 
         conn = convirt.connection.Connection()
-        dom = convirt.domain.Domain(_XML_DESC % str(uuid.uuid4()),
+        dom = convirt.domain.Domain(testlib.minimal_dom_xml(),
                                     convirt.config.environ.current())
         conn.domainEventRegisterAny(dom, evt, _cb, None)
 
-        # FIXME     
+        # FIXME
         self.assertEquals(tuple(),
                           tuple(sorted(convirt.events.root.registered)))
         self.assertEquals((evt,),
@@ -88,7 +84,8 @@ class ConnectionTests(testlib.TestCase):
     def test_register_multiple_callbacks(self):
         evt = libvirt.VIR_DOMAIN_EVENT_ID_LIFECYCLE
 
-        called  = [False] * NUM
+        called = [False] * NUM
+
         def _cb(opaque):
             called[opaque] = True
 
@@ -107,24 +104,11 @@ class ConnectionTests(testlib.TestCase):
                              None)
 
     def test_fire_unknown_event_through_dom(self):
-        dom = convirt.domain.Domain(_XML_DESC % str(uuid.uuid4()),
+        dom = convirt.domain.Domain(testlib.minimal_dom_xml(),
                                     convirt.config.environ.current())
         self.assertNotRaises(dom.events.fire,
                              libvirt.VIR_DOMAIN_EVENT_ID_REBOOT,
                              None)
-
-
-_XML_DESC = """<?xml version="1.0" encoding="utf-8"?>
-    <domain type="kvm" xmlns:ovirt="http://ovirt.org/vm/tune/1.0">
-    <name>testVm</name>
-    <uuid>%s</uuid>
-    <maxMemory>0</maxMemory>
-    <devices>
-        <emulator>rkt</emulator>
-    </devices>
-    </domain>
-"""
-
 
 
 def _handler(*args, **kwargs):

@@ -20,9 +20,6 @@
 from __future__ import absolute_import
 
 
-import uuid
-import unittest
-
 import libvirt
 
 import convirt
@@ -41,6 +38,7 @@ class WatchdogTests(testlib.RunnableTestCase):
         evt = libvirt.VIR_DOMAIN_EVENT_ID_LIFECYCLE
 
         delivered = []
+
         def _cb(*args, **kwargs):
             delivered.append(args)
 
@@ -50,39 +48,17 @@ class WatchdogTests(testlib.RunnableTestCase):
         conn = convirt.connection.Connection()
         with testlib.named_temp_dir() as tmp_dir:
             with testlib.global_conf(run_dir=tmp_dir):
-                dom = conn.createXML(_XML_DESC % str(uuid.uuid4()), 0)
+                dom = conn.createXML(testlib.minimal_dom_xml(), 0)
                 conn.domainEventRegisterAny(dom, evt, _cb, None)
-                with monkey.patch_scope([(convirt.runner, 'get_all', _fake_get_all)]):
+                with monkey.patch_scope(
+                    [(convirt.runner, 'get_all', _fake_get_all)]
+                ):
                     convirt.monitorAllDomains()
 
         self.assertEquals(delivered, [(
             libvirt.VIR_DOMAIN_EVENT_STOPPED,
             libvirt.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN,
         )])
-
-
-_XML_DESC = """<?xml version="1.0" encoding="utf-8"?>
-    <domain type="kvm" xmlns:ovirt="http://ovirt.org/vm/tune/1.0">
-    <name>testVm</name>
-    <uuid>%s</uuid>
-    <maxMemory>0</maxMemory>
-    <devices>
-      <emulator>rkt</emulator>
-      <disk type='file' device='disk' snapshot='no'>
-        <driver name='qemu' type='raw' cache='none' error_policy='stop' io='threads'/>
-        <source file='/random/path/to/disk/image'>
-          <seclabel model='selinux' labelskip='yes'/>
-        </source>
-        <backingStore/>
-        <target dev='vdb' bus='virtio'/>
-        <serial>90bece76-2df6-4a88-bfc8-f6f7461b7b8b</serial>
-        <alias name='virtio-disk1'/>
-        <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
-      </disk>
-    </devices>
-    </domain>
-"""
-
 
 
 def _handler(*args, **kwargs):

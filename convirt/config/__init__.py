@@ -21,6 +21,7 @@ from __future__ import absolute_import
 
 from collections import MutableMapping
 
+
 # http://code.activestate.com/recipes/576972-attrdict/
 class AttrDict(MutableMapping):
 

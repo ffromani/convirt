@@ -1,0 +1,5 @@
+<domain type='kvm' id='2'>
+  <maxMemory slots='16' unit='KiB'>4294967296</maxMemory>
+  <devices>
+  </devices>
+</domain>

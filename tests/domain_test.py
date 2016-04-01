@@ -19,9 +19,7 @@
 #
 from __future__ import absolute_import
 
-from contextlib import contextmanager
 import uuid
-import unittest
 
 import libvirt
 
@@ -75,12 +73,15 @@ class DomainXMLTests(testlib.RunnableTestCase):
         _TEST_DOM_XML = testlib.minimal_dom_xml()
         dom = convirt.domain.Domain(_TEST_DOM_XML,
                                     convirt.config.environ.current())
-        self.assertEqual(dom.XMLDesc(libvirt.VIR_DOMAIN_XML_SECURE),
-                                     _TEST_DOM_XML)
-        self.assertEqual(dom.XMLDesc(libvirt.VIR_DOMAIN_XML_INACTIVE),
-                                     _TEST_DOM_XML)
-        self.assertEqual(dom.XMLDesc(libvirt.VIR_DOMAIN_XML_UPDATE_CPU),
-                                     _TEST_DOM_XML)
+        self.assertEqual(
+            dom.XMLDesc(libvirt.VIR_DOMAIN_XML_SECURE),
+            _TEST_DOM_XML)
+        self.assertEqual(
+            dom.XMLDesc(libvirt.VIR_DOMAIN_XML_INACTIVE),
+            _TEST_DOM_XML)
+        self.assertEqual(
+            dom.XMLDesc(libvirt.VIR_DOMAIN_XML_UPDATE_CPU),
+            _TEST_DOM_XML)
 
 
 class DomainAPITests(testlib.FakeRunnableTestCase):
@@ -158,7 +159,7 @@ class RecoveryTests(testlib.TestCase):
             conf = testlib.make_conf(run_dir=tmp_dir)
             with monkey.patch_scope([(convirt.runtime, 'create',
                                       self._fake_create)]):
-                dom = convirt.domain.Domain.recover(
+                convirt.domain.Domain.recover(
                     vm_uuid, testlib.minimal_dom_xml(vm_uuid), conf)
 
         existing_doms = convirt.doms.get_all()

@@ -19,11 +19,8 @@
 #
 from __future__ import absolute_import
 
-import os
 import subprocess
-import tempfile
 import uuid
-import xml.etree.ElementTree as ET
 
 import convirt
 import convirt.command
@@ -50,8 +47,7 @@ class RuntimeListTests(testlib.TestCase):
         VM_UUID = 'd7a0005e-ee05-4e61-9fbe-d2e93d59327c'
 
         def fake_check_output(*args):
-            return \
-"""
+            return """
 convirt-%s.service                                                loaded active running   /bin/sleep 10m
 """ % VM_UUID
 
@@ -60,33 +56,27 @@ convirt-%s.service                                                loaded active 
             conts = list(convirt.runner.get_all())
             self.assertEqual(conts, [VM_UUID])
 
-
     def test__parse_systemctl_one_service(self):
-        output = \
-"""
+        output = """
 foobar.service                                                                                      loaded active running   /bin/sleep 10m
 """
         names = list(convirt.runner._parse_systemctl_list_units(output))
         self.assertEqual(names, ["foobar"])
 
     def test__parse_systemctl_empty_output(self):
-        output = \
-"""
-"""
+        output = ""
         names = list(convirt.runner._parse_systemctl_list_units(output))
         self.assertEqual(names, [])
 
     def test__parse_systemctl_corrupted_output(self):
-        output = \
-"""
+        output = """
 foobar.service    somehow messed
 """
         names = list(convirt.runner._parse_systemctl_list_units(output))
         self.assertEqual(names, [])
 
     def test__parse_systemctl_no_services(self):
-        output = \
-"""
+        output = """
 proc-sys-fs-binfmt_misc.automount                                                                   loaded active waiting   Arbitrary Executable File Formats File System Automount Point
 sys-module-fuse.device                                                                              loaded active plugged   /sys/module/fuse
 sys-subsystem-net-devices-virbr0.device                                                             loaded active plugged   /sys/subsystem/net/devices/virbr0
@@ -167,9 +157,10 @@ class RunnerTests(testlib.TestCase):
         runner = convirt.runner.Runner(self.unit_name, conf)
         _false = convirt.command.Path('false')
         with monkey.patch_scope([(convirt.runner, '_SUDO', _false)]):
-            self.assertRaises(convirt.runner.OperationFailed,
-                              runner.start,
-                              ['/bin/sleep', '42s'],
+            self.assertRaises(
+                convirt.runner.OperationFailed,
+                runner.start,
+                ['/bin/sleep', '42s'],
             )
 
     def test_stop(self):

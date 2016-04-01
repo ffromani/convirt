@@ -21,7 +21,6 @@ from __future__ import absolute_import
 
 
 import uuid
-import unittest
 
 import convirt
 import convirt.doms
@@ -29,7 +28,9 @@ import convirt.doms
 from . import testlib
 from six.moves import range
 
+
 NUM = 5  # random low value
+
 
 class DomsTests(testlib.TestCase):
 
@@ -67,6 +68,7 @@ class DomsTests(testlib.TestCase):
         self.assertEquals(dom_list[1],
                           convirt.doms.get_by_uuid(dom_list[1].uuid))
 
+
 def _fill_doms(num):
     dom_list = []
     for _ in range(NUM):
@@ -74,6 +76,7 @@ def _fill_doms(num):
         dom_list.append(dom)
         convirt.doms.add(dom)
     return dom_list
+
 
 class FakeDomain(object):
     def __init__(self, uuid_str):

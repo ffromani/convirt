@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 # Copyright 2015-2016 Red Hat, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -18,20 +16,17 @@ from __future__ import absolute_import
 #
 # Refer to the README and COPYING files for full details of the license
 #
+from __future__ import absolute_import
 
 import logging
 import uuid
 
 import libvirt
 
-from . import config
 from . import domain
 from . import doms
 from . import errors
 from . import events
-from . import monitoring
-from . import runner
-from . import xmlfile
 
 
 class Connection(object):
@@ -51,7 +46,8 @@ class Connection(object):
 
     def domainEventRegisterAny(self, dom, eventID, cb, opaque):
         handler = events.root if dom is None else dom.events
-        self._log.info('[%s] using handler %r for %i',
+        self._log.info(
+            '[%s] using handler %r for %i',
             self._name, handler, eventID)
         handler.register(eventID, cb, opaque)
 
@@ -93,6 +89,6 @@ class Connection(object):
     def __getattr__(self, name):
         # virConnect does not expose non-callable attributes.
         return self._fake_method
-    
+
     def _fake_method(self, *args):
         errors.throw()

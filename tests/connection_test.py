@@ -19,7 +19,6 @@
 #
 from __future__ import absolute_import
 
-import uuid
 import xml.etree.ElementTree as ET
 
 import libvirt

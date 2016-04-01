@@ -22,7 +22,6 @@ from __future__ import absolute_import
 import contextlib
 import os
 import uuid
-import unittest
 import xml.etree.ElementTree as ET
 
 import convirt
@@ -30,7 +29,6 @@ import convirt.config
 import convirt.config.environ
 import convirt.xmlfile
 
-from . import monkey
 from . import testlib
 
 

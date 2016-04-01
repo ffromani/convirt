@@ -19,10 +19,8 @@ from __future__ import absolute_import
 # Refer to the README and COPYING files for full details of the license
 #
 
-import errno
 import os
 import subprocess
-import unittest
 
 import convirt
 import convirt.command

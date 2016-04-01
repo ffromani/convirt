@@ -21,8 +21,6 @@ from __future__ import absolute_import
 
 import os.path
 import time
-import uuid
-import unittest
 import xml.etree.ElementTree as ET
 
 import convirt
@@ -55,19 +53,6 @@ class RktTests(testlib.RunnableTestCase):
         finally:
             rkt.stop()
             self.assertFalse(rkt.running)
-
-    def test_start_twice(self):
-        rkt = rts.rkt.Rkt(testlib.make_conf(run_dir=self.run_dir))
-        root = ET.fromstring(testlib.minimal_dom_xml())
-        rkt.configure(root)
-        rkt.start()
-        try:
-            self.assertRaises(convirt.runner.OperationFailed,
-                              rkt.start)
-        finally:
-            # not part of the test, but we don't want
-            # to pollute the environment
-            rkt.stop()
 
     def test_start_twice(self):
         rkt = rts.rkt.Rkt(testlib.make_conf(run_dir=self.run_dir))

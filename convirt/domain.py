@@ -20,7 +20,6 @@
 from __future__ import absolute_import
 
 import logging
-import os.path
 import uuid
 import xml.etree.ElementTree as ET
 
@@ -150,6 +149,6 @@ class Domain(object):
     def __getattr__(self, name):
         # virDomain does not expose non-callable attributes.
         return self._fake_method
-    
+
     def _fake_method(self, *args):
         errors.throw()

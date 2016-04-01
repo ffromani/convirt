@@ -70,7 +70,8 @@ class EnvironTests(ConfigTestsMixin, testlib.TestCase):
         self.assertFalse(convirt.config.environ.current() is conf)
 
     def test_update(self):
-        conf = convirt.config.environ.update(run_dir='/run/convirt/another/random/dir')
+        conf = convirt.config.environ.update(
+            run_dir='/run/convirt/another/random/dir')
         self.assertEquals(convirt.config.environ.current(), conf)
         self.assertFalse(convirt.config.environ.current() is conf)
 

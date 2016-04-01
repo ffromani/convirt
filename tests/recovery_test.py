@@ -43,7 +43,6 @@ class RecoveryTests(testlib.FakeRunnableTestCase):
     def tearDown(self):
         convirt.doms.clear()
 
-
     def test_recoverAllDomains(self):
         vm_uuid = str(uuid.uuid4())
 
@@ -62,7 +61,7 @@ class RecoveryTests(testlib.FakeRunnableTestCase):
                     (convirt.runner, 'get_all', _fake_get_all),
                     (convirt.runtime, 'create', _fake_create),
                 ]):
-                    conn = convirt.openAuth('convirt:///system', None)
+                    convirt.openAuth('convirt:///system', None)
                     recovered_doms = convirt.recoveryAllDomains()
                     self.assertEquals(len(recovered_doms), 1)
                     self.assertEquals(recovered_doms[0].UUIDString(), vm_uuid)
@@ -84,15 +83,16 @@ class RecoveryTests(testlib.FakeRunnableTestCase):
         with testlib.named_temp_dir() as tmp_dir:
             with testlib.global_conf(run_dir=tmp_dir):
                 for vm_uuid in vm_uuids:
-                    xf = convirt.xmlfile.XMLFile(vm_uuid,
-                                                 convirt.config.environ.current())
+                    xf = convirt.xmlfile.XMLFile(
+                        vm_uuid,
+                        convirt.config.environ.current())
                     save_xml(xf, testlib.minimal_dom_xml(vm_uuid=vm_uuid))
 
                 with monkey.patch_scope([
                     (convirt.runner, 'get_all', _fake_get_all),
                     (convirt.runtime, 'create', _fake_create),
                 ]):
-                    conn = convirt.openAuth('convirt:///system', None)
+                    convirt.openAuth('convirt:///system', None)
                     recovered_doms = convirt.recoveryAllDomains()
                     recovered_uuids = set(vm_uuids[1:])
                     self.assertEquals(len(recovered_doms),
