@@ -49,7 +49,7 @@ class Connection(object):
         self._log.info(
             '[%s] using handler %r for %i',
             self._name, handler, eventID)
-        handler.register(eventID, cb, opaque)
+        handler.register(eventID, self, dom, cb, opaque)
 
     def listAllDomains(self, flags=0):
         # flags are unused

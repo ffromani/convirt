@@ -24,14 +24,15 @@ import logging
 import threading
 
 
-Callback = collections.namedtuple('Callback', ['body', 'args'])
+Callback = collections.namedtuple('Callback',
+                                  ['conn', 'dom', 'body', 'args'])
 
 
 def _null_cb(*args, **kwargs):
     pass
 
 
-_NULL = Callback(_null_cb, tuple())
+_NULL = Callback(None, None, _null_cb, tuple())
 
 
 class Handler(object):
@@ -46,17 +47,20 @@ class Handler(object):
         self._lock = threading.Lock()
         self.events = collections.defaultdict(list)
 
-    def register(self, event_id, func, opaque):
+    def register(self, event_id, conn, dom, func, opaque=None):
         with self._lock:
-            cb = Callback(func, opaque)
+            # TODO: weakrefs?
+            cb = Callback(conn, dom, func, opaque)
             # TODO: debug?
             self._log.info('[%s] %i -> %s', self._name, event_id, cb)
-            self.events[event_id].append(Callback(func, opaque))
+            self.events[event_id].append(cb)
 
     def fire(self, event_id, *args):
         for cb in self.get_callbacks(event_id):
-            arguments = args if cb.args is None else tuple(args + cb.args)
-            return cb.body(*arguments)
+            arguments = list(args)
+            if cb.args is not None:
+                arguments.extend(cb.args)
+            return cb.body(cb.conn, cb.dom, *arguments)
 
     def get_callbacks(self, event_id):
         with self._lock:

@@ -87,7 +87,7 @@ class ConnectionTests(testlib.TestCase):
 
         called = [False] * NUM
 
-        def _cb(opaque):
+        def _cb(conn, dom, opaque):
             called[opaque] = True
 
         conn = convirt.connection.Connection()

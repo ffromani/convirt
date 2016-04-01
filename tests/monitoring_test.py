@@ -56,6 +56,8 @@ class WatchdogTests(testlib.RunnableTestCase):
                     convirt.monitorAllDomains()
 
         self.assertEquals(delivered, [(
+            conn,
+            dom,
             libvirt.VIR_DOMAIN_EVENT_STOPPED,
             libvirt.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN,
         )])
