@@ -79,7 +79,7 @@ def setup():
         if _ready:
             raise SetupError('setup already done')
         _register()
-        for name, rt in _runtimes.items():
+        for name, rt in list(_runtimes.items()):
             _log.debug('setting up runtime %r', name)
             rt.setup_runtime()
         _ready = True
@@ -92,7 +92,7 @@ def teardown():
     with _lock:
         if not _ready:
             raise SetupError('teardown already done')
-        for name, rt in _runtimes.items():
+        for name, rt in list(_runtimes.items()):
             _log.debug('shutting down runtime %r', name)
             rt.teardown_runtime()
         _unregister()
@@ -104,7 +104,7 @@ def configure():
     global _runtimes
     with _lock:
         _register()
-        for name, rt in _runtimes.items():
+        for name, rt in list(_runtimes.items()):
             _log.debug('configuring runtime %r', name)
             rt.configure_runtime()
 

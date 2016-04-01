@@ -30,6 +30,7 @@ from .. import command
 from .. import fs
 from .. import runner
 from . import ContainerRuntime
+from six.moves import range
 
 
 _MACHINECTL = command.Path('machinectl')

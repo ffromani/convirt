@@ -27,6 +27,7 @@ import convirt.connection
 import convirt.events
 
 from . import testlib
+from six.moves import range
 
 
 NUM = 5  # random "low" number
