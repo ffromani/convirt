@@ -93,6 +93,9 @@ class Domain(object):
         self._rt.start()
         self._log.debug('restarted container %r', self.UUIDString())
 
+    def runtimeUUIDString(self):
+        return str(self._rt.uuid)
+
     def ID(self):
         return self._vm_uuid.int
 

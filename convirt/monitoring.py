@@ -19,6 +19,8 @@
 #
 from __future__ import absolute_import
 
+import logging
+
 from . import doms
 from . import runner
 
@@ -30,7 +32,13 @@ def watchdog():
     # should never have duplicate anyway
     found = set(vm_uuid for vm_uuid in runner.get_all())
     for dom in doms.get_all():
-        if dom.UUIDString() not in found:
+        rt_uuid = dom.runtimeUUIDString()
+        if rt_uuid in found:
+            logging.warning(
+                'container %r still running', rt_uuid)
+        else:
+            logging.warning(
+                'container %r no longer running, sending STOP event', rt_uuid)
             dom.events.fire(libvirt.VIR_DOMAIN_EVENT_ID_LIFECYCLE,
                             libvirt.VIR_DOMAIN_EVENT_STOPPED,
                             libvirt.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN)
