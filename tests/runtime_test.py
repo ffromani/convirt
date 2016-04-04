@@ -167,6 +167,9 @@ class RuntimeAPITests(testlib.RunnableTestCase):
     def test_supported(self):
         self.assertIn('rkt', convirt.runtime.supported(register=False))
 
+    def test_setup_register(self):
+        self.assertIn('rkt', convirt.runtime.supported())
+
     def test_setup(self):
         convirt.runtime.clear()
         self.assertEqual(

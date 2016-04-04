@@ -26,6 +26,7 @@ import convirt
 import convirt.config.environ
 import convirt.connection
 import convirt.events
+import convirt.monitoring
 import convirt.runner
 
 from . import monkey
@@ -61,6 +62,30 @@ class WatchdogTests(testlib.RunnableTestCase):
             libvirt.VIR_DOMAIN_EVENT_STOPPED,
             libvirt.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN,
         )])
+
+    def test_domain_all_present(self):
+        evt = libvirt.VIR_DOMAIN_EVENT_ID_LIFECYCLE
+
+        delivered = []
+
+        def _cb(*args, **kwargs):
+            delivered.append(args)
+
+        conn = convirt.connection.Connection()
+        with testlib.named_temp_dir() as tmp_dir:
+            with testlib.global_conf(run_dir=tmp_dir):
+                dom = conn.createXML(testlib.minimal_dom_xml(), 0)
+                conn.domainEventRegisterAny(dom, evt, _cb, None)
+
+                def _fake_get_all():
+                    return [dom.runtimeUUIDString()]
+
+                with monkey.patch_scope(
+                    [(convirt.runner, 'get_all', _fake_get_all)]
+                ):
+                    convirt.monitorAllDomains()
+
+        self.assertEquals(delivered, [])
 
 
 def _handler(*args, **kwargs):
