@@ -25,7 +25,7 @@ import threading
 
 
 Callback = collections.namedtuple('Callback',
-                                  ['conn', 'dom', 'body', 'args'])
+                                  ['conn', 'dom', 'body', 'opaque'])
 
 
 def _null_cb(*args, **kwargs):
@@ -58,8 +58,8 @@ class Handler(object):
     def fire(self, event_id, dom, *args):
         for cb in self.get_callbacks(event_id):
             arguments = list(args)
-            if cb.args is not None:
-                arguments.extend(cb.args)
+            if cb.opaque is not None:
+                arguments.append(cb.opaque)
             domain = cb.dom
             if dom is not None:
                 domain = dom
