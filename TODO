@@ -8,3 +8,5 @@
 	- depends on monitoring
 - tests:
 	- malformed XMLs for network and images
+	- runner.run_cmd (explicit)
+	- runtime.cleanup

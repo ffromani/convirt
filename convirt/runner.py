@@ -91,17 +91,24 @@ class Runner(object):
         return cmd
 
     def call(self, cmd):
-        command = []
-        if self._conf.use_sudo:
-            command.append(_SUDO.cmd())
-        command.extend(cmd)
-        self._log.debug('%s calling [%s]', self._unit_name, cmd)
-        try:
-            subprocess.check_call(command)
-        except subprocess.CalledProcessError as exc:
-            raise OperationFailed(str(exc))
-        finally:
-            self._log.debug('%s called [%s]', self._unit_name, cmd)
+        run_cmd(cmd, self._unit_name, self._conf, self._log)
+
+
+def run_cmd(cmd, ident, conf=None, log=None):
+    conf = config.environ.current() if conf is None else conf
+    log = logging.getLogger('convirt.runner') if log is None else log
+
+    command = []
+    if conf.use_sudo:
+        command.append(_SUDO.cmd())
+    command.extend(cmd)
+    log.debug('%s calling [%s]', ident, cmd)
+    try:
+        subprocess.check_call(command)
+    except subprocess.CalledProcessError as exc:
+        raise OperationFailed(str(exc))
+    finally:
+        log.debug('%s called [%s]', ident, cmd)
 
 
 def get_all():

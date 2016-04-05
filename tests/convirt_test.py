@@ -25,6 +25,7 @@ import libvirt
 import convirt
 import convirt.config.environ
 import convirt.connection
+import convirt.doms
 import convirt.events
 import convirt.monitoring
 import convirt.runner
@@ -33,40 +34,12 @@ from . import monkey
 from . import testlib
 
 
-class MonitoringTests(testlib.RunnableTestCase):
+class APITests(testlib.RunnableTestCase):
 
     def tearDown(self):
         convirt.doms.clear()
 
-    def test_domain_disappeared(self):
-        evt = libvirt.VIR_DOMAIN_EVENT_ID_LIFECYCLE
-
-        delivered = []
-
-        def _cb(*args, **kwargs):
-            delivered.append(args)
-
-        def _fake_get_all():
-            return []
-
-        conn = convirt.connection.Connection()
-        with testlib.named_temp_dir() as tmp_dir:
-            with testlib.global_conf(run_dir=tmp_dir):
-                dom = conn.createXML(testlib.minimal_dom_xml(), 0)
-                conn.domainEventRegisterAny(dom, evt, _cb, None)
-                with monkey.patch_scope(
-                    [(convirt.runner, 'get_all', _fake_get_all)]
-                ):
-                    convirt.monitoring.watchdog()
-
-        self.assertEquals(delivered, [(
-            conn,
-            dom,
-            libvirt.VIR_DOMAIN_EVENT_STOPPED,
-            libvirt.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN,
-        )])
-
-    def test_domain_all_present(self):
+    def test_monitor_domains(self):
         evt = libvirt.VIR_DOMAIN_EVENT_ID_LIFECYCLE
 
         delivered = []
@@ -86,9 +59,24 @@ class MonitoringTests(testlib.RunnableTestCase):
                 with monkey.patch_scope(
                     [(convirt.runner, 'get_all', _fake_get_all)]
                 ):
-                    convirt.monitoring.watchdog()
+                    convirt.monitorAllDomains()
 
         self.assertEquals(delivered, [])
+
+    def test_monitor_system(self):
+
+        calls = []
+
+        def _run_cmd(*args):
+            calls.append(args)
+
+        with monkey.patch_scope([
+            (convirt.runner, 'run_cmd', _run_cmd),
+        ]):
+            convirt.monitorSystem()
+
+        self.assertTrue(calls)
+
 
 
 def _handler(*args, **kwargs):

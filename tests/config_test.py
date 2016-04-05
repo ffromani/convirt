@@ -57,6 +57,8 @@ class EnvironTests(ConfigTestsMixin, testlib.TestCase):
             run_dir='/run/convirt_d',
             use_sudo=False,
             cgroup_slice='convirt_slice',
+            cleanup_expire_period=1000,
+            cleanup_grace_period=10,
         )
         self.assertNotRaises(convirt.config.environ.setup, conf)
         self.assertEquals(convirt.config.environ.current(), conf)

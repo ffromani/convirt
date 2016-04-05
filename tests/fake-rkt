@@ -7,8 +7,6 @@ import uuid
 
 _ARG = '--uuid-file-save'
 
-args = sys.argv[1:]
-
 def find_path(args):
     for arg in args:
         if arg.startswith(_ARG):
@@ -16,14 +14,31 @@ def find_path(args):
             return val
     return None
 
-try:
-    path = find_path(args)
-except ValueError:
-    sys.exit(1)
 
-try:
-    path = path.strip('"')
-    with open(path, 'wt') as fp:
-        fp.write(str(uuid.uuid4()))
-except IOError as e:
-    sys.exit(2)
+def _gc(args):
+    sys.exit(0)
+
+
+def _run(args):
+    try:
+        path = find_path(args)
+    except ValueError:
+        sys.exit(1)
+
+    try:
+        path = path.strip('"')
+        with open(path, 'wt') as fp:
+            fp.write(str(uuid.uuid4()))
+    except IOError as e:
+        sys.exit(2)
+
+
+def _main(args):
+    if 'gc' in args:
+        _gc(args)
+    elif 'run' in args:
+        _run(args)
+
+
+if __name__ == "__main__":
+    _main(sys.argv[1:])

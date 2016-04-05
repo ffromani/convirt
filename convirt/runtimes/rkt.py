@@ -25,6 +25,7 @@ import os
 import os.path
 import time
 
+from ..config import environ
 from ..config import network
 from .. import command
 from .. import fs
@@ -62,6 +63,22 @@ class Rkt(ContainerRuntime):
         self._log.debug('rkt runtime %s uuid_path=[%s]',
                         self._uuid, self._rkt_uuid_path)
         self._rkt_uuid = None
+
+    @classmethod
+    def cleanup_command_line(cls, conf=None):
+        conf = environ.current() if conf is None else conf
+        cmd = [
+            Rkt._PATH.cmd(),
+            'gc',
+            '--expire-prepared=%is' % (conf.cleanup_expire_period),
+            '--grace-period=%is' % (conf.cleanup_grace_period),
+        ]
+        return cmd
+
+    @classmethod
+    def cleanup_runtime(cls):
+        cmd = cls.cleanup_command_line()
+        runner.run_cmd(cmd, cls.NAME)
 
     @classmethod
     def configure_runtime(cls):

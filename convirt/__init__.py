@@ -30,13 +30,24 @@ from . import doms
 from . import errors
 from . import monitoring
 from . import runner
+from . import runtime
 
 
 _log = logging.getLogger('convirt')
 
 
 def monitorAllDomains():
+    """
+    Must not require root privileges.
+    """
     monitoring.watchdog()
+
+
+def monitorSystem():
+    """
+    May require root privileges.
+    """
+    runtime.cleanup()
 
 
 def recoveryAllDomains():

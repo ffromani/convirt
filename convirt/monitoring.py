@@ -23,6 +23,7 @@ import logging
 
 from . import doms
 from . import runner
+from . import runtime
 
 import libvirt
 

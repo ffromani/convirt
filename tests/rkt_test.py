@@ -91,6 +91,23 @@ class RktTests(testlib.RunnableTestCase):
                               read_file=_fail_read)
             self.assertRaises(convirt.runner.OperationFailed, rkt.resync)
 
+    def test_cleanup(self):
+
+        calls = []
+
+        def _run_cmd(*args):
+            calls.append(args)
+
+        with monkey.patch_scope([
+            (convirt.runner, 'run_cmd', _run_cmd),
+        ]):
+            rkt = rts.rkt.Rkt(testlib.make_conf(run_dir=self.run_dir))
+            rts.rkt.Rkt.cleanup_runtime()
+
+        self.assertEquals(calls,
+                          [(rts.rkt.Rkt.cleanup_command_line(),
+                            rts.rkt.Rkt.NAME)])
+
 
 class NetworkTests(testlib.TestCase):
 
