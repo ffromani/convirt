@@ -194,6 +194,22 @@ def only_mem_dom_xml():
     return _read_dom_xml('only_mem.xml')
 
 
+def disk_dev_dom_xml():
+    return _read_dom_xml('disk_dev.xml')
+
+
+def disk_file_malformed_dom_xml():
+    return _read_dom_xml('disk_file_malformed.xml')
+
+
+def bridge_down_dom_xml():
+    return _read_dom_xml('bridge_down.xml')
+
+
+def bridge_no_source_dom_xml():
+    return _read_dom_xml('bridge_no_source.xml')
+
+
 def _read_dom_xml(name):
     testdir = os.path.dirname(os.path.abspath(__file__))
     tmpl = os.path.join(testdir, 'data', name)

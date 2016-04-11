@@ -95,12 +95,17 @@ class RuntimeContainerUnimplementedAPITests(testlib.TestCase):
         self.assertNotRaises(
             convirt.runtimes.ContainerRuntime.configure_runtime())
 
+    def test_cleanup_runtime(self):
+        self.assertNotRaises(
+            convirt.runtimes.ContainerRuntime.cleanup_runtime())
+
 
 class RuntimeContainerConfigureTests(testlib.TestCase):
 
     def setUp(self):
         self.vm_uuid = str(uuid.uuid4())
-        self.base = convirt.runtimes.ContainerRuntime(self.vm_uuid)
+        self.conf = convirt.config.environ.current()
+        self.base = convirt.runtimes.ContainerRuntime(self.conf,self.vm_uuid)
 
     def test_missing_content(self):
         root = ET.fromstring("<domain type='kvm' id='2'></domain>")
@@ -119,6 +124,28 @@ class RuntimeContainerConfigureTests(testlib.TestCase):
         self.assertRaises(convirt.runtimes.ConfigError,
                           self.base.configure,
                           root)
+
+    def test_disk_source_not_file(self):
+        root = ET.fromstring(testlib.disk_file_malformed_dom_xml())
+        self.assertRaises(convirt.runtimes.ConfigError,
+                          self.base.configure,
+                          root)
+
+    def test_bridge_down(self):
+        root = ET.fromstring(testlib.bridge_down_dom_xml())
+        with testlib.global_conf(net_fallback=False) as conf:
+            base = convirt.runtimes.ContainerRuntime(conf, self.vm_uuid)
+            self.assertRaises(convirt.runtimes.ConfigError,
+                              base.configure,
+                              root)
+
+    def test_bridge_no_source(self):
+        root = ET.fromstring(testlib.bridge_no_source_dom_xml())
+        with testlib.global_conf(net_fallback=False) as conf:
+            base = convirt.runtimes.ContainerRuntime(conf, self.vm_uuid)
+            self.assertRaises(convirt.runtimes.ConfigError,
+                              base.configure,
+                              root)
 
     def test_config_present(self):
         MEM = 4 * 1024 * 1024
@@ -226,4 +253,3 @@ class RuntimeAPITests(testlib.RunnableTestCase):
             convirt.runtime.cleanup()
 
         self.assertTrue(calls)
-
