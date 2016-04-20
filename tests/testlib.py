@@ -115,8 +115,8 @@ class RunnableTestCase(TestCase):
         self.patch = monkey.Patch([
             (convirt.runtimes.rkt.Network, 'DIR', self.run_dir),
             (convirt.runtimes.rkt.Rkt, '_PATH', fake_rkt),
-            (convirt.runtimes.rkt, '_MACHINECTL', fake_mctl),
-            (convirt.runner, '_SYSTEMD_RUN', fake_sdrun)])
+            (convirt.command, 'machinectl', fake_mctl),
+            (convirt.command, 'systemd_run', fake_sdrun)])
         self.patch.apply()
         convirt.runtime.clear()
         convirt.runtime.configure()

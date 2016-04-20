@@ -63,3 +63,16 @@ class Path(object):
             if os.access(cmd, os.X_OK):
                 return cmd
         return None
+
+
+systemctl = Path('systemctl')
+systemd_run = Path('systemd-run')
+machinectl = Path('machinectl')
+
+
+# TODO document the purpose
+executables = [
+    systemctl,
+    systemd_run,
+    machinectl,
+]

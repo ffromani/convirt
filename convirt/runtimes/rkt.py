@@ -34,8 +34,10 @@ from . import ContainerRuntime
 from six.moves import range
 
 
-_MACHINECTL = command.Path('machinectl')
 _RKT = command.Path('rkt')
+
+
+command.executables.append(_RKT)
 
 
 class Rkt(ContainerRuntime):
@@ -91,7 +93,7 @@ class Rkt(ContainerRuntime):
             raise runner.OperationFailed('not running')
 
         cmd = [
-            _MACHINECTL.cmd(),
+            command.machinectl.cmd(),
             'poweroff',
             self.runtime_name(),
         ]

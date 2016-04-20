@@ -32,14 +32,43 @@ PREFIX = 'convirt-'
 _SERVICE_EXT = ".service"
 
 _SUDO = command.Path('sudo')
-_SYSTEMCTL = command.Path('systemctl')
-_SYSTEMD_RUN = command.Path('systemd-run')
+# intentionally not added to executables, because used internally
 
 
 class OperationFailed(Exception):
     """
     TODO
     """
+
+
+def run_fake(cmd, tag=None, system=False, output=False):
+    log = logging.getLogger('convirt.runner')
+    log.info('run_fake(%r, tag=%r, system=%s output=%s)',
+             cmd, tag, system, output)
+
+
+def run_shell(cmdline, tag=None, system=False, output=False):
+    log = logging.getLogger('convirt.runner')
+    ident = '*' if tag is None else tag
+
+    cmd = []
+    if system:
+        cmd.append(_SUDO.cmd())
+    cmd.extend(cmdline)
+    log.debug('%s calling [%s]', ident, cmd)
+    try:
+        if output:
+            return subprocess.check_output(cmd)
+        else:
+            return subprocess.check_call(cmd)
+    except subprocess.CalledProcessError as exc:
+        raise OperationFailed(str(exc))
+    finally:
+        log.debug('%s called [%s]', ident, cmd)
+
+
+# TODO: document
+run_cmd = run_shell
 
 
 class Runner(object):
@@ -57,7 +86,7 @@ class Runner(object):
 
     def stop(self):
         cmd = [
-            _SYSTEMCTL.cmd(),
+            command.systemctl.cmd(),
             'stop',
             self._unit_name,
         ]
@@ -75,7 +104,7 @@ class Runner(object):
         return []  # TODO
 
     def command_line(self):
-        cmd = [_SYSTEMD_RUN.cmd()]
+        cmd = [command.systemd_run.cmd()]
         if self._unit_name is not None:
             cmd.append('--unit=%s' % self._unit_name)
         cmd.extend([
@@ -91,35 +120,18 @@ class Runner(object):
         return cmd
 
     def call(self, cmd):
-        run_cmd(cmd, self._unit_name, self._conf, self._log)
-
-
-def run_cmd(cmd, ident, conf=None, log=None):
-    conf = config.environ.current() if conf is None else conf
-    log = logging.getLogger('convirt.runner') if log is None else log
-
-    command = []
-    if conf.use_sudo:
-        command.append(_SUDO.cmd())
-    command.extend(cmd)
-    log.debug('%s calling [%s]', ident, cmd)
-    try:
-        subprocess.check_call(command)
-    except subprocess.CalledProcessError as exc:
-        raise OperationFailed(str(exc))
-    finally:
-        log.debug('%s called [%s]', ident, cmd)
+        run_cmd(cmd, self._unit_name, self._conf.use_sudo)
 
 
 def get_all():
     cmd = [
-        _SYSTEMCTL.cmd(),
+        command.systemctl.cmd(),
         'list-units',
         '--no-pager',
         '--no-legend',
         '%s*' % PREFIX,
     ]
-    output = subprocess.check_output(cmd)
+    output = run_cmd(cmd, output=True)
     for item in _parse_systemctl_list_units(output):
         yield item
 
