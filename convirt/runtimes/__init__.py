@@ -63,7 +63,8 @@ class ContainerRuntime(object):
             uuid.UUID(rt_uuid)
         )
         self._run_conf = None
-        self._runner = runner.Runner(self.unit_name(), self._conf)
+        self._runner = runner.Runner(self.unit_name())
+        self._runner.configure(self._conf)
 
     @property
     def uuid(self):

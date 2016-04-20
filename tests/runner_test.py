@@ -117,7 +117,7 @@ class RunnerTests(testlib.TestCase):
             self.assertTrue(unit_found)
 
         runner = convirt.runner.Runner(self.unit_name)
-        with monkey.patch_scope([(runner, 'call', _fake_call)]):
+        with monkey.patch_scope([(runner, '_call', _fake_call)]):
             runner.start(['/bin/sleep', '42m'])
             self.assertTrue(runner.running)
 
@@ -132,8 +132,9 @@ class RunnerTests(testlib.TestCase):
 
         conf = convirt.config.environ.current()
         conf.uid = uid
-        runner = convirt.runner.Runner(self.unit_name, conf)
-        with monkey.patch_scope([(runner, 'call', _fake_call)]):
+        runner = convirt.runner.Runner(self.unit_name)
+        runner.configure(conf)
+        with monkey.patch_scope([(runner, '_call', _fake_call)]):
             runner.start(['/bin/sleep', '42m'])
 
     def test_run_with_specific_gid(self):
@@ -147,14 +148,16 @@ class RunnerTests(testlib.TestCase):
 
         conf = convirt.config.environ.current()
         conf.gid = gid
-        runner = convirt.runner.Runner(self.unit_name, conf)
-        with monkey.patch_scope([(runner, 'call', _fake_call)]):
+        runner = convirt.runner.Runner(self.unit_name)
+        runner.configure(conf)
+        with monkey.patch_scope([(runner, '_call', _fake_call)]):
             runner.start(['/bin/sleep', '42m'])
 
     def test_call_fails(self):
         conf = convirt.config.environ.current()
         conf.use_sudo = True
-        runner = convirt.runner.Runner(self.unit_name, conf)
+        runner = convirt.runner.Runner(self.unit_name)
+        runner.configure(conf)
         _false = convirt.command.Path('false')
         with monkey.patch_scope([(convirt.runner, '_SUDO', _false)]):
             self.assertRaises(
@@ -176,7 +179,7 @@ class RunnerTests(testlib.TestCase):
             self.assertIn(self.unit_name, cmd[2])
 
         runner = convirt.runner.Runner(self.unit_name)
-        with monkey.patch_scope([(runner, 'call', _fake_call)]):
+        with monkey.patch_scope([(runner, '_call', _fake_call)]):
             runner.stop()
 
     def test_stats_pristine(self):

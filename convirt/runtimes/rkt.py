@@ -92,12 +92,7 @@ class Rkt(ContainerRuntime):
         if not self.running:
             raise runner.OperationFailed('not running')
 
-        cmd = [
-            command.machinectl.cmd(),
-            'poweroff',
-            self.runtime_name(),
-        ]
-        self._runner.call(cmd)
+        self._runner.stop(self.runtime_name())
         try:
             os.remove(self._rkt_uuid_path)
         except OSError:

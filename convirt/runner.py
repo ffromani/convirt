@@ -71,39 +71,40 @@ def run_shell(cmdline, tag=None, system=False, output=False):
 run_cmd = run_shell
 
 
-class Runner(object):
+class Base(object):
 
     _log = logging.getLogger('convirt.runtime.Runner')
 
-    def __init__(self, unit_name, conf=None):
+    def __init__(self, unit_name):
         self._unit_name = unit_name
-        self._conf = config.environ.current() if conf is None else conf
+        self._conf = config.environ.current()
         self._running = False
 
     @property
     def running(self):
         return self._running
 
-    def stop(self):
-        cmd = [
-            command.systemctl.cmd(),
-            'stop',
-            self._unit_name,
-        ]
-        self.call(cmd)
+    def configure(self, conf):
+        self._conf = conf
+
+    def stop(self, runtime_name=None):
         self._running = False
 
     def start(self, *args):
-        cmd = self.command_line()
-        cmd.extend(*args)
-        self.call(cmd)
         self._running = True
 
-    @staticmethod
-    def stats():
-        return []  # TODO
+    @classmethod
+    def stats(cls):
+        raise NotImplementedError
 
-    def command_line(self):
+    @classmethod
+    def get_all(cls):
+        return []
+
+
+class Subproc(Base):
+
+    def start(self, *args):
         cmd = [command.systemd_run.cmd()]
         if self._unit_name is not None:
             cmd.append('--unit=%s' % self._unit_name)
@@ -117,21 +118,57 @@ class Runner(object):
             cmd.append('--uid=%i' % self._conf.uid)
         if self._conf.gid is not None:
             cmd.append('--gid=%i' % self._conf.gid)
-        return cmd
+        cmd.extend(*args)
+        self._call(cmd)
+        super(Runner, self).start(*args)
 
-    def call(self, cmd):
+    def stop(self, runtime_name=None):
+        if runtime_name is None:
+            cmd = [
+                command.systemctl.cmd(),
+                'stop',
+                self._unit_name,
+            ]
+        else:
+            cmd = [
+                command.machinectl.cmd(),
+                'poweroff',
+                runtime_name,
+            ]
+        self._call(cmd)
+        super(Runner, self).stop(runtime_name)
+
+    @classmethod
+    def stats(cls):
+        return []  # TODO
+
+    @classmethod
+    def get_all(cls):
+        cmd = [
+            command.systemctl.cmd(),
+            'list-units',
+            '--no-pager',
+            '--no-legend',
+            '%s*' % PREFIX,
+        ]
+        return run_cmd(cmd, output=True)
+
+    def _call(self, cmd):
         run_cmd(cmd, self._unit_name, self._conf.use_sudo)
 
 
+Runner = Subproc
+
+
+def replace(impl):
+    global Runner
+    log = logging.getLogger('convirt.runner')
+    log.debug('replacing default runner with %r', impl)
+    Runner = impl
+
+
 def get_all():
-    cmd = [
-        command.systemctl.cmd(),
-        'list-units',
-        '--no-pager',
-        '--no-legend',
-        '%s*' % PREFIX,
-    ]
-    output = run_cmd(cmd, output=True)
+    output = Runner.get_all()
     for item in _parse_systemctl_list_units(output):
         yield item
 
