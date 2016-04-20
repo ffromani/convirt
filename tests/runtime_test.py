@@ -95,10 +95,6 @@ class RuntimeContainerUnimplementedAPITests(testlib.TestCase):
         self.assertNotRaises(
             convirt.runtimes.ContainerRuntime.configure_runtime())
 
-    def test_cleanup_runtime(self):
-        self.assertNotRaises(
-            convirt.runtimes.ContainerRuntime.cleanup_runtime())
-
 
 class RuntimeContainerConfigureTests(testlib.TestCase):
 
@@ -239,17 +235,3 @@ class RuntimeAPITests(testlib.RunnableTestCase):
         self.assertNotRaises(convirt.runtime.teardown())
         self.assertRaises(convirt.runtime.SetupError,
                           convirt.runtime.teardown)
-
-    def test_cleanup(self):
-
-        calls = []
-
-        def _run_cmd(*args):
-            calls.append(args)
-
-        with monkey.patch_scope([
-            (convirt.runner, 'run_cmd', _run_cmd),
-        ]):
-            convirt.runtime.cleanup()
-
-        self.assertTrue(calls)

@@ -43,13 +43,6 @@ def monitorAllDomains():
     monitoring.watchdog()
 
 
-def monitorSystem():
-    """
-    May require root privileges.
-    """
-    runtime.cleanup()
-
-
 def recoveryAllDomains():
     conf = environ.current()
     for rt_uuid in runner.get_all():

@@ -46,8 +46,6 @@ _ENV = Environment(
     run_dir='/run/convirt',
     use_sudo=True,
     cgroup_slice='convirt',  # XXX: or 'machine' ?
-    cleanup_expire_period=3600,  # seconds
-    cleanup_grace_period=30,  # seconds
     net_fallback=True,
 )
 

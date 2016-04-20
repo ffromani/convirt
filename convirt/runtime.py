@@ -120,15 +120,6 @@ def configure():
             rt.configure_runtime()
 
 
-def cleanup():
-    global _lock
-    global _runtimes
-    with _lock:
-        for name, rt in list(_runtimes.items()):
-            _log.debug('cleaning runtime %r', name)
-            rt.cleanup_runtime()
-
-
 # for test purposes
 def clear():
     global _ready

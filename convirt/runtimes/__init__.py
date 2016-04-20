@@ -122,10 +122,6 @@ class ContainerRuntime(object):
     def configure_runtime(cls):
         pass  # optional
 
-    @classmethod
-    def cleanup_runtime(cls):
-        pass  # optional
-
     @property
     def runtime_config(self):
         """

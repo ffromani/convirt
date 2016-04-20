@@ -65,22 +65,6 @@ class Rkt(ContainerRuntime):
         self._rkt_uuid = None
 
     @classmethod
-    def cleanup_command_line(cls, conf=None):
-        conf = environ.current() if conf is None else conf
-        cmd = [
-            Rkt._PATH.cmd(),
-            'gc',
-            '--expire-prepared=%is' % (conf.cleanup_expire_period),
-            '--grace-period=%is' % (conf.cleanup_grace_period),
-        ]
-        return cmd
-
-    @classmethod
-    def cleanup_runtime(cls):
-        cmd = cls.cleanup_command_line()
-        runner.run_cmd(cmd, cls.NAME)
-
-    @classmethod
     def configure_runtime(cls):
         conf = network.current()
         with Network() as net:

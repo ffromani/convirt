@@ -63,21 +63,6 @@ class APITests(testlib.RunnableTestCase):
 
         self.assertEquals(delivered, [])
 
-    def test_monitor_system(self):
-
-        calls = []
-
-        def _run_cmd(*args):
-            calls.append(args)
-
-        with monkey.patch_scope([
-            (convirt.runner, 'run_cmd', _run_cmd),
-        ]):
-            convirt.monitorSystem()
-
-        self.assertTrue(calls)
-
-
 
 def _handler(*args, **kwargs):
     pass
