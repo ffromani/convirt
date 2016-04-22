@@ -62,8 +62,8 @@ class TruePath(object):
 
 
 class NonePath(object):
-    def cmd(self):
-        return None
+    def __init__(self):
+        self.cmd = None
 
 
 TEMPDIR = '/tmp'

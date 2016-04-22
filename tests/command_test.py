@@ -40,12 +40,12 @@ class PathTests(testlib.TestCase):
 
     def test_existing(self):
         cp = convirt.command.Path('sh', paths=['utter nonsense', '/bin/'])
-        self.assertEquals(cp.cmd(), '/bin/sh')
+        self.assertEquals(cp.cmd, '/bin/sh')
 
     def test_existing_without_paths(self):
         cp = convirt.command.Path('sh')
         output = str(subprocess.check_output(['which', 'sh']))
-        self.assertIn(cp.cmd(), output)
+        self.assertIn(cp.cmd, output)
 
     def test_missing(self):
         cp = convirt.command.Path('nonsense')

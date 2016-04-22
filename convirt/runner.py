@@ -47,7 +47,7 @@ def run_shell(cmdline, tag=None, system=False, output=False):
 
     cmd = []
     if system:
-        cmd.append(_SUDO.cmd())
+        cmd.append(_SUDO.cmd)
     cmd.extend(cmdline)
     log.debug('%s calling [%s]', ident, cmd)
     try:
@@ -99,7 +99,7 @@ class Base(object):
 class Subproc(Base):
 
     def start(self, *args):
-        cmd = [command.systemd_run.cmd()]
+        cmd = [command.systemd_run.cmd]
         if self._unit_name is not None:
             cmd.append('--unit=%s' % self._unit_name)
         cmd.extend([
@@ -119,13 +119,13 @@ class Subproc(Base):
     def stop(self, runtime_name=None):
         if runtime_name is None:
             cmd = [
-                command.systemctl.cmd(),
+                command.systemctl.cmd,
                 'stop',
                 self._unit_name,
             ]
         else:
             cmd = [
-                command.machinectl.cmd(),
+                command.machinectl.cmd,
                 'poweroff',
                 runtime_name,
             ]
@@ -139,7 +139,7 @@ class Subproc(Base):
     @classmethod
     def get_all(cls):
         cmd = [
-            command.systemctl.cmd(),
+            command.systemctl.cmd,
             'list-units',
             '--no-pager',
             '--no-legend',

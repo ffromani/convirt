@@ -43,7 +43,14 @@ class Path(object):
             self._paths = self._find_paths()
         return self._paths
 
+    @property
     def cmd(self):
+        try:
+            return self.get()
+        except NotFound:
+            return None
+
+    def get(self):
         if self._cmd is None:
             self._cmd = self._which(self._name)
         if self._cmd is None:

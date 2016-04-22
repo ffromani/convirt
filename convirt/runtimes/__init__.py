@@ -51,10 +51,7 @@ class ContainerRuntime(object):
 
     @classmethod
     def available(cls):
-        try:
-            return cls._PATH.cmd() is not None
-        except command.NotFound:
-            return False
+        return cls._PATH.cmd is not None
 
     def __init__(self, conf, rt_uuid=None):
         self._conf = conf

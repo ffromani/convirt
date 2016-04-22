@@ -107,7 +107,7 @@ class Rkt(ContainerRuntime):
             self._run_conf.network
         )
         cmd = [
-            Rkt._PATH.cmd(),
+            Rkt._PATH.cmd,
             '--uuid-file-save=%s' % self._rkt_uuid_path,
             '--insecure-options=image',  # FIXME
             '--net=%s' % network,

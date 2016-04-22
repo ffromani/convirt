@@ -34,7 +34,10 @@ from . import testlib
 
 
 class RaisingPath(object):
-    def cmd(self):
+    def __init__(self):
+        self.cmd = None
+
+    def get(self):
         raise convirt.command.NotFound()
 
 
