@@ -41,12 +41,6 @@ class OperationFailed(Exception):
     """
 
 
-def run_fake(cmd, tag=None, system=False, output=False):
-    log = logging.getLogger('convirt.runner')
-    log.info('run_fake(%r, tag=%r, system=%s output=%s)',
-             cmd, tag, system, output)
-
-
 def run_shell(cmdline, tag=None, system=False, output=False):
     log = logging.getLogger('convirt.runner')
     ident = '*' if tag is None else tag
@@ -95,7 +89,7 @@ class Base(object):
 
     @classmethod
     def stats(cls):
-        raise NotImplementedError
+        return []
 
     @classmethod
     def get_all(cls):
