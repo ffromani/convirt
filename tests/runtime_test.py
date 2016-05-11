@@ -131,6 +131,14 @@ class RuntimeContainerConfigureTests(testlib.TestCase):
                           self.base.configure,
                           root)
 
+    def test_volume_mapping(self):
+        root = ET.fromstring(testlib.metadata_drive_map_dom_xml())
+        self.assertNotRaises(self.base.configure, root)
+        conf = self.base.runtime_config
+        self.assertEquals(conf.volume_mapping, {
+            "data": "vda",
+        })  # FIXME
+
     def test_bridge_down(self):
         root = ET.fromstring(testlib.bridge_down_dom_xml())
         with testlib.global_conf(net_fallback=False) as conf:
@@ -156,7 +164,7 @@ class RuntimeContainerConfigureTests(testlib.TestCase):
         <domain type='kvm' id='2'>
           <maxMemory slots='16' unit='KiB'>{mem}</maxMemory>
           <devices>
-            <disk type='file' device='disk' snapshot='no'>
+            <disk type='file' device='cdrom' snapshot='no'>
               <source file='{path}'>
               </source>
               <target dev='vdb' bus='virtio'/>

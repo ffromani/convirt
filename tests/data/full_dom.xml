@@ -33,16 +33,17 @@
                         <bandwidth/>
                 </interface>
                 <disk device="cdrom" snapshot="no" type="file">
-                        <source file="" startupPolicy="optional"/>
+			<source file="/rhev/data-center/00000001-0001-0001-0001-00000000027f/43db3789-bb16-40bd-a9fc-3cced1b23ea6/images/27101aac-10ec-468a-aaf5-694c663b2c33/373d166e-d21a-4ad0-8166-571f49c22d64" startupPolicy="optional"/>
                         <target bus="ide" dev="hdc"/>
                         <readonly/>
-                        <serial/>
+                        <serial>522169df-603d-4229-8451-69a4e860554a</serial>
+                        <boot order="1"/>
                 </disk>
                 <disk device="disk" snapshot="no" type="file">
                         <source file="/rhev/data-center/00000001-0001-0001-0001-00000000027f/43db3789-bb16-40bd-a9fc-3cced1b23ea6/images/27101aac-10ec-468a-aaf5-694c663b2c33/19bb423f-7db0-4cd1-9fe9-5aa3d4d8c1af"/>
                         <target bus="virtio" dev="vda"/>
                         <serial>27101aac-10ec-468a-aaf5-694c663b2c33</serial>
-                        <boot order="1"/>
+                        <boot order="2"/>
                         <driver cache="none" error_policy="stop" io="threads" name="qemu" type="raw"/>
                 </disk>
                 <channel type="spicevmc">

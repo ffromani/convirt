@@ -210,6 +210,10 @@ def bridge_no_source_dom_xml():
     return _read_dom_xml('bridge_no_source.xml')
 
 
+def metadata_drive_map_dom_xml():
+    return _read_dom_xml('metadata_drive_map.xml')
+
+
 def _read_dom_xml(name):
     testdir = os.path.dirname(os.path.abspath(__file__))
     tmpl = os.path.join(testdir, 'data', name)

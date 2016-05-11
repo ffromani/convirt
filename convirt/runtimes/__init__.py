@@ -29,7 +29,8 @@ from .. import runner
 
 # TODO: networking
 RunConfig = collections.namedtuple(
-    'RunConfig', ['image_path', 'memory_size_mib', 'network'])
+    'RunConfig', ['image_path', 'volume_paths', 'volume_mapping',
+                  'memory_size_mib', 'network'])
 
 
 class ConfigError(Exception):
@@ -75,10 +76,12 @@ class ContainerRuntime(object):
 
     def configure(self, xml_tree):
         self._log.debug('configuring runtime %r', self.uuid)
-        mem = self._find_memory(xml_tree)
-        path = self._find_image(xml_tree)
+        dom = DomainParser(xml_tree, self._uuid, self._log)
+        mem = dom.memory()
+        path, volumes = dom.drives()
+        mapping = dom.drives_map()
         try:
-            net = self._find_network(xml_tree)
+            net = dom.network()
         except ConfigError:
             if self._conf.net_fallback:
                 self._log.debug('no network detected for %r, using default',
@@ -86,7 +89,7 @@ class ContainerRuntime(object):
                 net = None
             else:
                 raise
-        self._run_conf = RunConfig(path, mem, net)
+        self._run_conf = RunConfig(path, volumes, mapping, mem, net)
         self._log.debug('configured runtime %s: %s',
                         self.uuid, self._run_conf)
 
@@ -130,8 +133,20 @@ class ContainerRuntime(object):
         """
         return self._run_conf
 
-    def _find_memory(self, xml_tree):
-        mem_node = xml_tree.find('./maxMemory')
+
+class DomainParser(object):
+
+    def __init__(self, xml_tree, uuid, log):
+        self._xml_tree = xml_tree
+        self._uuid = uuid
+        self._log = log
+
+    @property
+    def uuid(self):
+        return self._uuid
+
+    def memory(self):
+        mem_node = self._xml_tree.find('./maxMemory')
         if mem_node is not None:
             mem = int(mem_node.text)/1024
             self._log.debug('runtime %r found memory = %i MiB',
@@ -139,12 +154,17 @@ class ContainerRuntime(object):
             return mem
         raise ConfigError('memory')
 
-    def _find_image(self, xml_tree):
-        disks = xml_tree.findall('.//disk[@type="file"]')
+    def drives(self):
+        images, volumes = [], []
+        disks = self._xml_tree.findall('.//disk[@type="file"]')
         for disk in disks:
             # TODO: add in the findall() above?
             device = disk.get('device')
-            if device != 'disk':
+            if device == 'cdrom':
+                target = images
+            elif device == 'disk':
+                target = volumes
+            else:
                 continue
             source = disk.find('./source/[@file]')
             if source is None:
@@ -152,11 +172,27 @@ class ContainerRuntime(object):
             image_path = source.get('file')
             self._log.debug('runtime %r found image path %r',
                             self.uuid, image_path)
-            return image_path.strip('"')
-        raise ConfigError('image path not found')
+            target.append(image_path.strip('"'))
+        if not images:
+            raise ConfigError('image path not found')
+        if len(images) > 1:
+            self._log.warning(
+                'found more than one image: %r, using the first one',
+                images)
+        return images[0], volumes
 
-    def _find_network(self, xml_tree):
-        interfaces = xml_tree.findall('.//interface[@type="bridge"]')
+    def drives_map(self):
+        mapping = {}
+        # TODO: use findall('./metadata/convirt:drivemap/volume') ?
+        entries = self._xml_tree.findall('./metadata//volume')
+        for entry in entries:
+            name = entry.get('name')
+            drive = entry.get('drive')
+            mapping[name] = drive
+        return mapping
+
+    def network(self):
+        interfaces = self._xml_tree.findall('.//interface[@type="bridge"]')
         for interface in interfaces:
             link = interface.find('./link')
             if link.get('state') != 'up':
