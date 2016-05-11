@@ -33,13 +33,15 @@ from . import testlib
 class RuntimeListTests(testlib.TestCase):
 
     def test_pristine(self):
-        conts = list(convirt.runner.get_all())
+        runr = convirt.runner.Subproc('testing')
+        conts = list(runr.get_all())
         self.assertEqual(conts, [])
 
     # we need something we are confident can't exist
     @monkey.patch_function(convirt.runner, 'PREFIX', str(uuid.uuid4()))
     def test_no_output(self):
-        conts = list(convirt.runner.get_all())
+        runr = convirt.runner.Subproc('testing')
+        conts = list(runr.get_all())
         self.assertEqual(conts, [])
 
     # TODO: add test with fake correct output
@@ -53,7 +55,8 @@ convirt-%s.service                                                loaded active 
 
         with monkey.patch_scope([(subprocess, 'check_output',
                                   fake_check_output)]):
-            conts = list(convirt.runner.get_all())
+            runr = convirt.runner.Subproc('testing')
+            conts = list(runr.get_all())
             self.assertEqual(conts, [VM_UUID])
 
     def test__parse_systemctl_one_service(self):
@@ -92,13 +95,13 @@ systemd-tmpfiles-clean.timer                                                    
         self.assertEqual(names, [])
 
 
-class RunnerTests(testlib.TestCase):
+class SubprocTests(testlib.TestCase):
 
     def setUp(self):
         self.unit_name = 'test'
 
     def test_created_not_running(self):
-        runner = convirt.runner.Runner(self.unit_name)
+        runner = convirt.runner.Subproc(self.unit_name)
         self.assertFalse(runner.running)
 
     def test_run_default_conf(self):
@@ -116,7 +119,7 @@ class RunnerTests(testlib.TestCase):
             )
             self.assertTrue(unit_found)
 
-        runner = convirt.runner.Runner(self.unit_name)
+        runner = convirt.runner.Subproc(self.unit_name)
         with monkey.patch_scope([(runner, '_call', _fake_call)]):
             runner.start(['/bin/sleep', '42m'])
             self.assertTrue(runner.running)
@@ -132,7 +135,7 @@ class RunnerTests(testlib.TestCase):
 
         conf = convirt.config.environ.current()
         conf.uid = uid
-        runner = convirt.runner.Runner(self.unit_name)
+        runner = convirt.runner.Subproc(self.unit_name)
         runner.configure(conf)
         with monkey.patch_scope([(runner, '_call', _fake_call)]):
             runner.start(['/bin/sleep', '42m'])
@@ -148,7 +151,7 @@ class RunnerTests(testlib.TestCase):
 
         conf = convirt.config.environ.current()
         conf.gid = gid
-        runner = convirt.runner.Runner(self.unit_name)
+        runner = convirt.runner.Subproc(self.unit_name)
         runner.configure(conf)
         with monkey.patch_scope([(runner, '_call', _fake_call)]):
             runner.start(['/bin/sleep', '42m'])
@@ -156,7 +159,7 @@ class RunnerTests(testlib.TestCase):
     def test_call_fails(self):
         conf = convirt.config.environ.current()
         conf.use_sudo = True
-        runner = convirt.runner.Runner(self.unit_name)
+        runner = convirt.runner.Subproc(self.unit_name)
         runner.configure(conf)
         _false = convirt.command.Path('false')
         with monkey.patch_scope([(convirt.runner, '_SUDO', _false)]):
@@ -178,10 +181,10 @@ class RunnerTests(testlib.TestCase):
             self.assertEqual('stop', cmd[1])
             self.assertIn(self.unit_name, cmd[2])
 
-        runner = convirt.runner.Runner(self.unit_name)
+        runner = convirt.runner.Subproc(self.unit_name)
         with monkey.patch_scope([(runner, '_call', _fake_call)]):
             runner.stop()
 
     def test_stats_pristine(self):
-        stats = list(convirt.runner.Runner.stats())
+        stats = list(convirt.runner.Subproc.stats())
         self.assertEqual(stats, [])

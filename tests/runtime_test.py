@@ -104,7 +104,8 @@ class RuntimeContainerConfigureTests(testlib.TestCase):
     def setUp(self):
         self.vm_uuid = str(uuid.uuid4())
         self.conf = convirt.config.environ.current()
-        self.base = convirt.runtimes.ContainerRuntime(self.conf,self.vm_uuid)
+        self.base = convirt.runtimes.ContainerRuntime(
+            self.conf, rt_uuid=self.vm_uuid)
 
     def test_missing_content(self):
         root = ET.fromstring("<domain type='kvm' id='2'></domain>")
@@ -133,7 +134,8 @@ class RuntimeContainerConfigureTests(testlib.TestCase):
     def test_bridge_down(self):
         root = ET.fromstring(testlib.bridge_down_dom_xml())
         with testlib.global_conf(net_fallback=False) as conf:
-            base = convirt.runtimes.ContainerRuntime(conf, self.vm_uuid)
+            base = convirt.runtimes.ContainerRuntime(
+                conf, rt_uuid=self.vm_uuid)
             self.assertRaises(convirt.runtimes.ConfigError,
                               base.configure,
                               root)
@@ -141,7 +143,8 @@ class RuntimeContainerConfigureTests(testlib.TestCase):
     def test_bridge_no_source(self):
         root = ET.fromstring(testlib.bridge_no_source_dom_xml())
         with testlib.global_conf(net_fallback=False) as conf:
-            base = convirt.runtimes.ContainerRuntime(conf, self.vm_uuid)
+            base = convirt.runtimes.ContainerRuntime(
+                conf, rt_uuid=self.vm_uuid)
             self.assertRaises(convirt.runtimes.ConfigError,
                               base.configure,
                               root)

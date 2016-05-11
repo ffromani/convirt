@@ -56,8 +56,12 @@ class Rkt(ContainerRuntime):
 
     _DELAY = 1  # seconds  TODO: make config item?
 
-    def __init__(self, conf, rt_uuid=None, read_file=fs.read_file):
-        super(Rkt, self).__init__(conf, rt_uuid)
+    def __init__(self,
+                 conf,
+                 runr=runner.Subproc.create,
+                 rt_uuid=None,
+                 read_file=fs.read_file):
+        super(Rkt, self).__init__(conf, runr, rt_uuid)
         self._read_file = read_file
         rkt_uuid_file = '%s.%s' % (self._uuid, self.NAME)
         self._rkt_uuid_path = os.path.join(

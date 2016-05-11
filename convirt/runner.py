@@ -67,7 +67,11 @@ run_cmd = run_shell
 
 class Base(object):
 
-    _log = logging.getLogger('convirt.runtime.Runner')
+    _log = logging.getLogger('convirt.runtime.Subproc')
+
+    @classmethod
+    def create(cls, *args, **kwargs):
+        return cls(*args, **kwargs)
 
     def __init__(self, unit_name):
         self._unit_name = unit_name
@@ -114,7 +118,7 @@ class Subproc(Base):
             cmd.append('--gid=%i' % self._conf.gid)
         cmd.extend(*args)
         self._call(cmd)
-        super(Runner, self).start(*args)
+        super(Subproc, self).start(*args)
 
     def stop(self, runtime_name=None):
         if runtime_name is None:
@@ -130,7 +134,7 @@ class Subproc(Base):
                 runtime_name,
             ]
         self._call(cmd)
-        super(Runner, self).stop(runtime_name)
+        super(Subproc, self).stop(runtime_name)
 
     @classmethod
     def stats(cls):
@@ -145,26 +149,13 @@ class Subproc(Base):
             '--no-legend',
             '%s*' % PREFIX,
         ]
-        return run_cmd(cmd, output=True)
+        output = run_cmd(cmd, output=True)
+        for item in _parse_systemctl_list_units(output):
+            yield item
 
     def _call(self, cmd):
         run_cmd(cmd, self._unit_name, self._conf.use_sudo)
 
-
-Runner = Subproc
-
-
-def replace(impl):
-    global Runner
-    log = logging.getLogger('convirt.runner')
-    log.debug('replacing default runner with %r', impl)
-    Runner = impl
-
-
-def get_all():
-    output = Runner.get_all()
-    for item in _parse_systemctl_list_units(output):
-        yield item
 
 
 def _vm_uuid_from_unit(unit):

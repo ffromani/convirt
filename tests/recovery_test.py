@@ -46,8 +46,10 @@ class RecoveryTests(testlib.FakeRunnableTestCase):
     def test_recoverAllDomains(self):
         vm_uuid = str(uuid.uuid4())
 
-        def _fake_get_all():
-            yield vm_uuid
+        class FakeRunner(object):
+            @classmethod
+            def get_all(cls):
+                yield vm_uuid
 
         def _fake_create(*args, **kwargs):
             return testlib.FakeRunner()
@@ -58,11 +60,9 @@ class RecoveryTests(testlib.FakeRunnableTestCase):
                                              convirt.config.environ.current())
                 save_xml(xf, testlib.minimal_dom_xml(vm_uuid=vm_uuid))
                 with monkey.patch_scope([
-                    (convirt.runner, 'get_all', _fake_get_all),
                     (convirt.runtime, 'create', _fake_create),
                 ]):
-                    convirt.openAuth('convirt:///system', None)
-                    recovered_doms = convirt.recoveryAllDomains()
+                    recovered_doms = convirt.recoveryAllDomains(FakeRunner)
                     self.assertEquals(len(recovered_doms), 1)
                     self.assertEquals(recovered_doms[0].UUIDString(), vm_uuid)
 
@@ -73,9 +73,11 @@ class RecoveryTests(testlib.FakeRunnableTestCase):
             str(uuid.uuid4()),
         ]
 
-        def _fake_get_all():
-            # mismatch UUID
-            return [str(uuid.uuid4())] + vm_uuids[1:]
+        class FakeRunner(object):
+            @classmethod
+            def get_all(cls):
+                # mismatch UUID
+                return [str(uuid.uuid4())] + vm_uuids[1:]
 
         def _fake_create(*args, **kwargs):
             return testlib.FakeRunner()
@@ -89,11 +91,9 @@ class RecoveryTests(testlib.FakeRunnableTestCase):
                     save_xml(xf, testlib.minimal_dom_xml(vm_uuid=vm_uuid))
 
                 with monkey.patch_scope([
-                    (convirt.runner, 'get_all', _fake_get_all),
                     (convirt.runtime, 'create', _fake_create),
                 ]):
-                    convirt.openAuth('convirt:///system', None)
-                    recovered_doms = convirt.recoveryAllDomains()
+                    recovered_doms = convirt.recoveryAllDomains(FakeRunner)
                     recovered_uuids = set(vm_uuids[1:])
                     self.assertEquals(len(recovered_doms),
                                       len(recovered_uuids))

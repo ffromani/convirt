@@ -28,10 +28,10 @@ from . import runtime
 import libvirt
 
 
-def watchdog():
-    # set for fast __contains__, the get_all() return value
+def watchdog(get_vm_uuids):
+    # set for fast __contains__, the get_vm_uuids() return value
     # should never have duplicate anyway
-    found = set(vm_uuid for vm_uuid in runner.get_all())
+    found = set(get_vm_uuids())
     for dom in doms.get_all():
         rt_uuid = dom.runtimeUUIDString()
         if rt_uuid in found:

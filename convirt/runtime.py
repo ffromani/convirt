@@ -58,7 +58,7 @@ class SetupError(Exception):
 _log = logging.getLogger('convirt.runtime')
 
 
-def create(rt, *args, **kwargs):
+def create(rt, conf, **kwargs):
     global _lock
     global _runtimes
 
@@ -69,7 +69,7 @@ def create(rt, *args, **kwargs):
         raise Unsupported(rt)
 
     _log.debug('creating container with runtime %r', klass.NAME)
-    return klass(*args, **kwargs)
+    return klass(conf, **kwargs)
 
 
 # FIXME: testing (half-hack)

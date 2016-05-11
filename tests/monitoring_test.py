@@ -54,10 +54,7 @@ class MonitoringTests(testlib.RunnableTestCase):
             with testlib.global_conf(run_dir=tmp_dir):
                 dom = conn.createXML(testlib.minimal_dom_xml(), 0)
                 conn.domainEventRegisterAny(dom, evt, _cb, None)
-                with monkey.patch_scope(
-                    [(convirt.runner, 'get_all', _fake_get_all)]
-                ):
-                    convirt.monitoring.watchdog()
+                convirt.monitoring.watchdog(_fake_get_all)
 
         self.assertEquals(delivered, [(
             conn,
@@ -83,10 +80,7 @@ class MonitoringTests(testlib.RunnableTestCase):
                 def _fake_get_all():
                     return [dom.runtimeUUIDString()]
 
-                with monkey.patch_scope(
-                    [(convirt.runner, 'get_all', _fake_get_all)]
-                ):
-                    convirt.monitoring.watchdog()
+                convirt.monitoring.watchdog(_fake_get_all)
 
         self.assertEquals(delivered, [])
 

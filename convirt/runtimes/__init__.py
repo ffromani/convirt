@@ -53,14 +53,17 @@ class ContainerRuntime(object):
     def available(cls):
         return cls._PATH.cmd is not None
 
-    def __init__(self, conf, rt_uuid=None):
+    def __init__(self,
+                 conf,
+                 runr=runner.Subproc.create,
+                 rt_uuid=None):
         self._conf = conf
         self._uuid = (
             uuid.uuid4() if rt_uuid is None else
             uuid.UUID(rt_uuid)
         )
         self._run_conf = None
-        self._runner = runner.Runner(self.unit_name())
+        self._runner = runr(self.unit_name())
         self._runner.configure(self._conf)
 
     @property

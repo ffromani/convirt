@@ -36,16 +36,18 @@ from . import runtime
 _log = logging.getLogger('convirt')
 
 
-def monitorAllDomains():
+def monitorAllDomains(runr=None):
     """
     Must not require root privileges.
     """
-    monitoring.watchdog()
+    runr = runner.Subproc if runr is None else runr
+    monitoring.watchdog(runr.get_all)
 
 
-def recoveryAllDomains():
+def recoveryAllDomains(runr=None):
+    runr = runner.Subproc if runr is None else runr
     conf = environ.current()
-    for rt_uuid in runner.get_all():
+    for rt_uuid in runr.get_all():
         _log.debug('trying to recover container %r', rt_uuid)
         xml_file = XMLFile(rt_uuid, conf)
         try:
@@ -57,7 +59,8 @@ def recoveryAllDomains():
     return doms.get_all()
 
 
-def openAuth(uri, auth, flags=0):
+def open(uri, runr=None):
+    runr = runner.Subproc if runr is None else runr
     if uri != 'convirt:///system':
         errors.throw()  # TODO: more specific error?
-    return connection.Connection()
+    return connection.Connection(runr)

@@ -53,13 +53,12 @@ class APITests(testlib.RunnableTestCase):
                 dom = conn.createXML(testlib.minimal_dom_xml(), 0)
                 conn.domainEventRegisterAny(dom, evt, _cb, None)
 
-                def _fake_get_all():
-                    return [dom.runtimeUUIDString()]
+                class FakeRunner(object):
+                    @classmethod
+                    def get_all(cls):
+                        return [dom.runtimeUUIDString()]
 
-                with monkey.patch_scope(
-                    [(convirt.runner, 'get_all', _fake_get_all)]
-                ):
-                    convirt.monitorAllDomains()
+                convirt.monitorAllDomains(FakeRunner)
 
         self.assertEquals(delivered, [])
 

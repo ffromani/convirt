@@ -39,31 +39,15 @@ class OpenConnectionTests(testlib.TestCase):
 
     def test_wrong_session(self):
         self.assertRaises(libvirt.libvirtError,
-                          convirt.openAuth,
-                          'qemu:///system',
-                          None)
+                          convirt.open,
+                          'qemu:///system')
 
-    def test_open_auth_none(self):
-        conn = convirt.openAuth('convirt:///system', None)
-        self.assertTrue(conn)
-
-    def test_open_auth_ignored(self):
-        def req(credentials, user_data):
-            for cred in credentials:
-                if cred[0] == libvirt.VIR_CRED_AUTHNAME:
-                    cred[4] = 'convirt'
-                elif cred[0] == libvirt.VIR_CRED_PASSPHRASE:
-                    cred[4] = 'ignored'
-            return 0
-
-        auth = [[libvirt.VIR_CRED_AUTHNAME, libvirt.VIR_CRED_PASSPHRASE],
-                req, None]
-
-        conn = convirt.openAuth('convirt:///system', auth)
+    def test_open_auth(self):
+        conn = convirt.open('convirt:///system')
         self.assertTrue(conn)
 
     def test_close(self):
-        conn = convirt.openAuth('convirt:///system', None)
+        conn = convirt.open('convirt:///system')
         self.assertNotRaises(conn.close)
 
 
@@ -77,35 +61,35 @@ class ConnectionAPITests(testlib.FakeRunnableTestCase):
         convirt.doms.clear()
 
     def test_get_lib_version(self):
-        conn = convirt.openAuth('convirt:///system', None)
+        conn = convirt.open('convirt:///system')
         ver = conn.getLibVersion()
         self.assertGreater(ver, 0)
 
     def test_lookup_by_name_missing(self):
-        conn = convirt.openAuth('convirt:///system', None)
+        conn = convirt.open('convirt:///system')
         self.assertRaises(libvirt.libvirtError,
                           conn.lookupByName,
                           "foobar")
 
     def test_lookup_by_id_missing(self):
-        conn = convirt.openAuth('convirt:///system', None)
+        conn = convirt.open('convirt:///system')
         self.assertRaises(libvirt.libvirtError,
                           conn.lookupByID,
                           42)
 
     def test_lookup_by_uuid_string(self):
         convirt.doms.add(self.dom)
-        conn = convirt.openAuth('convirt:///system', None)
+        conn = convirt.open('convirt:///system')
         guid = self.dom.UUIDString()
         dom = conn.lookupByUUIDString(guid)
         self.assertEquals(dom.UUIDString(), guid)
 
     def test_list_all_domains_none(self):
-        conn = convirt.openAuth('convirt:///system', None)
+        conn = convirt.open('convirt:///system')
         self.assertEquals(conn.listAllDomains(0), [])
 
     def test_list_domains_id_none(self):
-        conn = convirt.openAuth('convirt:///system', None)
+        conn = convirt.open('convirt:///system')
         self.assertEquals(conn.listDomainsID(), [])
 
     def test_createXML(self):
@@ -117,7 +101,7 @@ class ConnectionAPITests(testlib.FakeRunnableTestCase):
             self.runners.append(rt)
             return rt
 
-        conn = convirt.openAuth('convirt:///system', None)
+        conn = convirt.open('convirt:///system')
         with testlib.named_temp_dir() as tmp_dir:
             with testlib.global_conf(run_dir=tmp_dir):
                 with monkey.patch_scope(

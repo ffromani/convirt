@@ -40,29 +40,33 @@ class Domain(object):
     _log = logging.getLogger('convirt.Domain')
 
     @classmethod
-    def create(cls, xmldesc, conf=None):
+    def create(cls, xmldesc, conf=None, runr=runner.Subproc.create):
         cfg = conf if conf is not None else config.environ.current()
-        inst = cls(xmldesc, cfg)
+        inst = cls(xmldesc, conf=cfg, runr=runr)
         inst._startup()
         doms.add(inst)
         return inst
 
     @classmethod
-    def recover(cls, rt_uuid, xmldesc, conf=None):
+    def recover(cls, rt_uuid, xmldesc, conf=None, runr=runner.Subproc.create):
         cfg = conf if conf is not None else config.environ.current()
-        inst = cls(xmldesc, cfg, rt_uuid=rt_uuid)
+        inst = cls(xmldesc, conf=cfg, runr=runr, rt_uuid=rt_uuid)
         inst._resync()
         doms.add(inst)
         return inst
 
-    def __init__(self, xmldesc, conf=None, rt_uuid=None):
+    def __init__(self, xmldesc,
+                 conf=None, runr=runner.Subproc.create, rt_uuid=None):
         self._xmldesc = xmldesc
         self._root = ET.fromstring(xmldesc)
         self._vm_uuid = uuid.UUID(self._root.find('./uuid').text)
         rt_name = self._root.find('./devices/emulator').text
         self._log.debug('initializing %r container %r',
                         rt_name, self.UUIDString())
-        self._rt = runtime.create(rt_name, conf=conf, rt_uuid=rt_uuid)
+        self._rt = runtime.create(rt_name,
+                                  conf=conf,
+                                  runr=runr,
+                                  rt_uuid=rt_uuid)
         self._xml_file = xmlfile.XMLFile(self._rt.uuid, conf)
         self._log.debug('initializing container %r runtime %r',
                         self.UUIDString(), self._rt.uuid)
