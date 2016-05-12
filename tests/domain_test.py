@@ -27,7 +27,7 @@ import convirt
 import convirt.command
 import convirt.domain
 import convirt.doms
-import convirt.runtimes.rkt
+import convirt.runtimes
 
 
 from . import monkey
@@ -43,8 +43,14 @@ class DomainIdsTests(testlib.RunnableTestCase):
             <name>testVm</name>
             <uuid>%s</uuid>
             <maxMemory>0</maxMemory>
+            <metadata>
+              <convirt:container
+                xmlns:convirt="http://github.com/mojaves/convirt/1.0">
+              rkt</convirt:container>
+              <ovirt:qos/>
+            </metadata>
             <devices>
-                <emulator>rkt</emulator>
+                <emulator>qemu-system-x86_64</emulator>
             </devices>
         </domain>
         """
@@ -82,6 +88,25 @@ class DomainXMLTests(testlib.RunnableTestCase):
         self.assertEqual(
             dom.XMLDesc(libvirt.VIR_DOMAIN_XML_UPDATE_CPU),
             _TEST_DOM_XML)
+
+    def test_missing_emulator_metadata(self):
+        xmldesc = """<?xml version="1.0" encoding="utf-8"?>
+        <domain type="kvm" xmlns:ovirt="http://ovirt.org/vm/tune/1.0">
+            <name>testVm</name>
+            <uuid>%s</uuid>
+            <maxMemory>0</maxMemory>
+            <metadata>
+              <ovirt:qos/>
+            </metadata>
+            <devices>
+                <emulator>qemu-system-x86_64</emulator>
+            </devices>
+        </domain>
+        """ % str(uuid.uuid4())
+        self.assertRaises(convirt.runtimes.ConfigError,
+                          convirt.domain.Domain,
+                          xmldesc,
+                          convirt.config.environ.current())
 
 
 class DomainAPITests(testlib.FakeRunnableTestCase):

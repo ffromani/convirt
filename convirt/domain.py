@@ -32,6 +32,7 @@ from . import events
 from . import doms
 from . import runner
 from . import runtime
+from . import runtimes
 from . import xmlfile
 
 
@@ -60,7 +61,7 @@ class Domain(object):
         self._xmldesc = xmldesc
         self._root = ET.fromstring(xmldesc)
         self._vm_uuid = uuid.UUID(self._root.find('./uuid').text)
-        rt_name = self._root.find('./devices/emulator').text
+        rt_name = _find_container_type(self._root)
         self._log.debug('initializing %r container %r',
                         rt_name, self.UUIDString())
         self._rt = runtime.create(rt_name,
@@ -159,3 +160,11 @@ class Domain(object):
 
     def _fake_method(self, *args):
         errors.throw()
+
+
+def _find_container_type(root):
+    uri = 'http://github.com/mojaves/convirt/1.0'
+    cont = root.find('./metadata/{%s}container' % uri)
+    if cont is None:
+        raise runtimes.ConfigError('missing container type')
+    return cont.text.strip()

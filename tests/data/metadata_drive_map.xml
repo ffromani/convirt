@@ -3,12 +3,14 @@
     <convirt:drivemap xmlns:convirt="http://github.com/mojaves/convirt/drivemap/1.0">
       <volume name="data" drive="vda"/>
     </convirt:drivemap>
+    <convirt:container xmlns:convirt="http://github.com/mojaves/convirt/1.0">rkt</convirt:container>
   </metadata>
   <memory>4194304</memory>
   <currentMemory>4194304</currentMemory>
   <maxMemory slots="16">4294967296</maxMemory>
   <vcpu current="2">16</vcpu>
   <devices>
+    <emulator>kvm</emulator>
     <disk device="cdrom" snapshot="no" type="file">
       <source file="/rhev/data-center/00000001-0001-0001-0001-00000000027f/43db3789-bb16-40bd-a9fc-3cced1b23ea6/images/27101aac-10ec-468a-aaf5-694c663b2c33/373d166e-d21a-4ad0-8166-571f49c22d64" startupPolicy="optional"/>
       <target bus="ide" dev="hdc"/>

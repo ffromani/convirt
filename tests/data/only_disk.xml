@@ -1,5 +1,9 @@
 <domain type='kvm' id='2'>
-          <devices>
+  <metadata>
+    <convirt:container xmlns:convirt="http://github.com/mojaves/convirt/1.0">rkt</convirt:container>
+  </metadata>
+  <devices>
+	  <emulator>kvm</emulator>
             <disk type='file' device='disk' snapshot='no'>
               <driver name='qemu' type='raw' cache='none' error_policy='stop' io='threads'/>
               <source file='/random/path/to/disk/image'>

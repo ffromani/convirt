@@ -5,8 +5,13 @@
         <memory>4194304</memory>
         <currentMemory>4194304</currentMemory>
         <maxMemory slots="16">4294967296</maxMemory>
-        <vcpu current="2">16</vcpu>
-        <devices>
+	<vcpu current="2">16</vcpu>
+  <metadata>
+    <convirt:container xmlns:convirt="http://github.com/mojaves/convirt/1.0">rkt</convirt:container>
+                <ovirt:qos/>
+  </metadata>
+  <devices>
+    <emulator>kvm</emulator>
                 <channel type="unix">
                         <target name="com.redhat.rhevm.vdsm" type="virtio"/>
                         <source mode="bind" path="/var/lib/libvirt/qemu/channels/338175a6-44e7-45d0-8321-2c6f2d5b3d6b.com.redhat.rhevm.vdsm"/>
@@ -16,7 +21,6 @@
                         <source mode="bind" path="/var/lib/libvirt/qemu/channels/338175a6-44e7-45d0-8321-2c6f2d5b3d6b.org.qemu.guest_agent.0"/>
                 </channel>
                 <input bus="ps2" type="mouse"/>
-                <emulator>rkt</emulator>
                 <memballoon model="none"/>
                 <video>
                         <model heads="1" ram="65536" type="qxl" vgamem="16384" vram="32768"/>
@@ -50,9 +54,6 @@
                         <target name="com.redhat.spice.0" type="virtio"/>
                 </channel>
         </devices>
-        <metadata>
-                <ovirt:qos/>
-        </metadata>
         <os>
                 <type arch="x86_64" machine="pc-i440fx-rhel7.2.0">hvm</type>
                 <smbios mode="sysinfo"/>

@@ -1,5 +1,9 @@
 <domain type='kvm' id='2'>
   <maxMemory slots='16' unit='KiB'>4294967296</maxMemory>
+  <metadata>
+    <convirt:container xmlns:convirt="http://github.com/mojaves/convirt/1.0">rkt</convirt:container>
+  </metadata>
   <devices>
+    <emulator>kvm</emulator>
   </devices>
 </domain>
