@@ -59,8 +59,16 @@ def recoveryAllDomains(runr=None):
     return doms.get_all()
 
 
-def open(uri, runr=None):
+def openConnection(uri, runr=None):
     runr = runner.Subproc if runr is None else runr
     if uri != 'convirt:///system':
         errors.throw()  # TODO: more specific error?
     return connection.Connection(runr)
+
+
+def openAuth(uri, auth, flags=0):
+    return openConnection(uri)
+
+
+def openReadOnly(uri):
+    errors.throw()  # TODO: more specific error?
