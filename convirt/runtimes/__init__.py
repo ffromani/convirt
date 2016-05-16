@@ -25,6 +25,7 @@ import uuid
 
 from .. import command
 from .. import runner
+from .. import xmlfile
 
 
 # TODO: networking
@@ -183,8 +184,9 @@ class DomainParser(object):
 
     def drives_map(self):
         mapping = {}
-        # TODO: use findall('./metadata/convirt:drivemap/volume') ?
-        entries = self._xml_tree.findall('./metadata//volume')
+        entries = self._xml_tree.findall(
+            './metadata/{%s}drivemap/volume' % xmlfile.CONVIRT_DRIVEMAP_URI,
+        )
         for entry in entries:
             name = entry.get('name')
             drive = entry.get('drive')

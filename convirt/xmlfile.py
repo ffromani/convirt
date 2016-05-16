@@ -28,6 +28,10 @@ import six
 from . import fs
 
 
+CONVIRT_URI = 'http://github.com/mojaves/convirt/1.0'
+CONVIRT_DRIVEMAP_URI = 'http://github.com/mojaves/convirt/drivemap/1.0'
+
+
 class UnconfiguredXML(Exception):
     """
     XML configuration missing

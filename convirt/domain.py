@@ -163,8 +163,9 @@ class Domain(object):
 
 
 def _find_container_type(root):
-    uri = 'http://github.com/mojaves/convirt/1.0'
-    cont = root.find('./metadata/{%s}container' % uri)
+    cont = root.find(
+        './metadata/{%s}container' % xmlfile.CONVIRT_URI
+    )
     if cont is None:
         raise runtimes.ConfigError('missing container type')
     return cont.text.strip()
