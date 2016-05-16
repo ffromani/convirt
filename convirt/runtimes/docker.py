@@ -40,6 +40,8 @@ class Docker(ContainerRuntime):
 
     _log = logging.getLogger('convirt.runtime.Docker')
 
+    NAME = 'docker'
+
     _PATH = _DOCKER
 
     _PREFIX = 'dkr-'

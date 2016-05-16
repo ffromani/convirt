@@ -198,7 +198,7 @@ class RuntimeAPITests(testlib.RunnableTestCase):
         conf = convirt.config.environ.current()
         self.assertRaises(convirt.runtime.Unsupported,
                           convirt.runtime.create,
-                          'docker',
+                          'lxc',
                           conf)
 
     def test_supported(self):

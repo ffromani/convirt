@@ -23,6 +23,7 @@ import logging
 import threading
 
 from .runtimes import rkt
+from .runtimes import docker
 
 
 _lock = threading.Lock()
@@ -34,6 +35,8 @@ def _register():
     global _runtimes
     if not _runtimes:
         runtimes = {}
+        if docker.Docker.available():
+            runtimes[docker.Docker.NAME] = docker.Docker
         if rkt.Rkt.available():
             runtimes[rkt.Rkt.NAME] = rkt.Rkt
         _runtimes = runtimes
