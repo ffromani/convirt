@@ -174,13 +174,8 @@ class DomainParser(object):
             self._log.debug('runtime %r found image path %r',
                             self.uuid, image_path)
             target.append(image_path.strip('"'))
-        if not images:
-            raise ConfigError('image path not found')
-        if len(images) > 1:
-            self._log.warning(
-                'found more than one image: %r, using the first one',
-                images)
-        return images[0], volumes
+        image = self._find_image(images)
+        return image, volumes
 
     def drives_map(self):
         mapping = {}
@@ -206,3 +201,12 @@ class DomainParser(object):
             self._log.debug('runtime %r found bridge %r', self.uuid, bridge)
             return bridge.strip('"')
         raise ConfigError('network settings not found')  # TODO
+
+    def _find_image(self, images):
+        if not images:
+            raise ConfigError('image path not found')
+        if len(images) > 1:
+            self._log.warning(
+                'found more than one image: %r, using the first one',
+                images)
+        return images[0]
