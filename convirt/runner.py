@@ -117,7 +117,7 @@ class Subproc(Base):
         if self._conf.gid is not None:
             cmd.append('--gid=%i' % self._conf.gid)
         cmd.extend(*args)
-        self._call(cmd)
+        self.call(cmd)
         super(Subproc, self).start(*args)
 
     def stop(self, runtime_name=None):
@@ -133,7 +133,7 @@ class Subproc(Base):
                 'poweroff',
                 runtime_name,
             ]
-        self._call(cmd)
+        self.call(cmd)
         super(Subproc, self).stop(runtime_name)
 
     @classmethod
@@ -153,7 +153,7 @@ class Subproc(Base):
         for item in _parse_systemctl_list_units(output):
             yield item
 
-    def _call(self, cmd):
+    def call(self, cmd):
         run_cmd(cmd, self._unit_name, self._conf.use_sudo)
 
 

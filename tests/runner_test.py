@@ -120,7 +120,7 @@ class SubprocTests(testlib.TestCase):
             self.assertTrue(unit_found)
 
         runner = convirt.runner.Subproc(self.unit_name)
-        with monkey.patch_scope([(runner, '_call', _fake_call)]):
+        with monkey.patch_scope([(runner, 'call', _fake_call)]):
             runner.start(['/bin/sleep', '42m'])
             self.assertTrue(runner.running)
 
@@ -137,7 +137,7 @@ class SubprocTests(testlib.TestCase):
         conf.uid = uid
         runner = convirt.runner.Subproc(self.unit_name)
         runner.configure(conf)
-        with monkey.patch_scope([(runner, '_call', _fake_call)]):
+        with monkey.patch_scope([(runner, 'call', _fake_call)]):
             runner.start(['/bin/sleep', '42m'])
 
     def test_run_with_specific_gid(self):
@@ -153,7 +153,7 @@ class SubprocTests(testlib.TestCase):
         conf.gid = gid
         runner = convirt.runner.Subproc(self.unit_name)
         runner.configure(conf)
-        with monkey.patch_scope([(runner, '_call', _fake_call)]):
+        with monkey.patch_scope([(runner, 'call', _fake_call)]):
             runner.start(['/bin/sleep', '42m'])
 
     def test_call_fails(self):
@@ -182,7 +182,7 @@ class SubprocTests(testlib.TestCase):
             self.assertIn(self.unit_name, cmd[2])
 
         runner = convirt.runner.Subproc(self.unit_name)
-        with monkey.patch_scope([(runner, '_call', _fake_call)]):
+        with monkey.patch_scope([(runner, 'call', _fake_call)]):
             runner.stop()
 
     def test_stats_pristine(self):
