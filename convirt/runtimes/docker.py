@@ -60,7 +60,7 @@ class Docker(ContainerRuntime):
 
     @property
     def running(self):
-        return self._running
+        return self._runner.running
 
     def start(self, target=None):
         if self.running:
@@ -74,23 +74,13 @@ class Docker(ContainerRuntime):
             '%s' % image,
         ]
 
-        self._runner.call(cmd)
-        self._running = True
+        self._runner.start(cmd)
 
     def stop(self):
         if not self.running:
             raise runner.OperationFailed('not running')
 
-        cmd = [
-            Docker._PATH.cmd,
-            'stop',
-            self.runtime_name(),
-        ]
-        self._runner.call(cmd)
-        self._running = False
+        self._runner.stop()
 
     def resync(self):
         pass  # nothing to do here
-
-    def runtime_name(self):
-        return '%s%s' % (self._PREFIX, self._uuid)
