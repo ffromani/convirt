@@ -209,4 +209,15 @@ class DomainParser(object):
             self._log.warning(
                 'found more than one image: %r, using the first one',
                 images)
-        return images[0]
+        image = self._override_image()
+        if image is None:
+            image = images[0]
+        return image
+
+    def _override_image(self):
+        cont = self._xml_tree.find(
+            './metadata/{%s}container' % xmlfile.CONVIRT_URI
+        )
+        if cont is None:
+            return None
+        return cont.get('image')
