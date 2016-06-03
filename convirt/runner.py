@@ -88,7 +88,7 @@ class Base(object):
     def stop(self, runtime_name=None):
         self._running = False
 
-    def start(self, *args):
+    def start(self, args):
         self._running = True
 
     @classmethod
@@ -102,7 +102,7 @@ class Base(object):
 
 class Subproc(Base):
 
-    def start(self, *args):
+    def start(self, args):
         cmd = [command.systemd_run.cmd]
         if self._unit_name is not None:
             cmd.append('--unit=%s' % self._unit_name)
@@ -116,9 +116,9 @@ class Subproc(Base):
             cmd.append('--uid=%i' % self._conf.uid)
         if self._conf.gid is not None:
             cmd.append('--gid=%i' % self._conf.gid)
-        cmd.extend(*args)
+        cmd.extend(args)
         self.call(cmd)
-        super(Subproc, self).start(*args)
+        super(Subproc, self).start(args)
 
     def stop(self, runtime_name=None):
         if runtime_name is None:
