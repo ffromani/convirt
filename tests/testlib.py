@@ -109,13 +109,17 @@ class RunnableTestCase(TestCase):
         ) as f:
             f.write('{}')
         paths = ['.', './tests']
+        fake_sysctl = convirt.command.Path('fake-systemctl', paths=paths)
         fake_mctl = convirt.command.Path('true')
+        fake_dkr = convirt.command.Path('fake-docker', paths=paths)
         fake_rkt = convirt.command.Path('fake-rkt', paths=paths)
         fake_sdrun = convirt.command.Path('fake-systemd-run', paths=paths)
         self.patch = monkey.Patch([
+            (convirt.runtimes.docker.Docker, '_PATH', fake_dkr),
             (convirt.runtimes.rkt.Network, 'DIR', self.run_dir),
             (convirt.runtimes.rkt.Rkt, '_PATH', fake_rkt),
             (convirt.command, 'machinectl', fake_mctl),
+            (convirt.command, 'systemctl', fake_sysctl),
             (convirt.command, 'systemd_run', fake_sdrun)])
         self.patch.apply()
         convirt.runtime.clear()

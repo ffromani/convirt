@@ -70,7 +70,7 @@ class Docker(ContainerRuntime):
         cmd = [
             Docker._PATH.cmd,
             'run',
-            '--name=%s' % self.runtime_name(),
+            '--name=%s' % self.unit_name(),
             '%s' % image,
         ]
 
