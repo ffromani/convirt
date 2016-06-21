@@ -2,8 +2,7 @@ conVirt
 =======
 
 conVirt is a python module that provides a [libvirt](http://libvirt.org/index.html)-like API,
-and allows you to run containers using [rkt](http://github.com/coreos/rkt) or
-[runc](http://github.com/opencontainers/runc).
+and allows you to run containers various runtimes.
 conVirt is implemented in pure python and plugs into python libvirt bindings, so your
 python program which already uses libvirt can use conVirt with minimal or no changes.
 
@@ -18,12 +17,8 @@ Dependencies
 * [libvirt](http://libvirt.org) - python bindings for common infrastructure to plug into.
 * [systemd](http://www.freedesktop.org/wiki/Software/systemd/) - to supervise containers.
 
-Supported or planned container runtimes:
-* [rkt](http://github.com/coreos/rkt) - support in progress
-* [runc](http://github.com/opencontainers/runc) - support planned
-* more to come...
-
-conVirt is developed and tested primarily on [fedora](https://getfedora.org/) and [centos](https://www.centos.org/).
+conVirt is developed and tested primarily on [fedora >= 24](https://getfedora.org/)
+and [centos >= 7.2](https://www.centos.org/).
 
 
 Installation
@@ -36,3 +31,15 @@ This is a regular python package, so it is installable using the standard means:
 
 
 The availability of RPM/deb packages and the uploading on PyPI is planned for near future.
+
+
+Supported runtimes
+------------------
+
+* [rkt](http://coreos.com/rkt) - fully supported, reference runtime
+
+* [runc](https://runc.io) - planned support, we never want this to break
+
+* [docker](http://www.docker.com) - experimental support - may be broken
+
+* NEXT - add your container runtime here!
