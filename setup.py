@@ -36,7 +36,6 @@ setup(name='convirt',
         'tools/convirt-ls-runtimes',
       ],
       packages=['convirt', 'convirt.config', 'convirt.runtimes'],
-      py_modules=['cgview'],
       install_requires=[
         "libvirt-python",
         "six",
