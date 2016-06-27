@@ -127,6 +127,11 @@ class DomainAPITests(testlib.FakeRunnableTestCase):
         # TODO: meaningful test
         self.assertNotRaises(self.dom.vcpus)
 
+    def test_info(self):
+        info = self.dom.info()
+        self.assertEquals(info[0],
+                          libvirt.VIR_DOMAIN_RUNNING)
+
 
 class UnsupportedAPITests(testlib.RunnableTestCase):
 

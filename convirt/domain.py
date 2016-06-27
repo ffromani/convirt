@@ -120,9 +120,10 @@ class Domain(object):
 #
 #    def setTime(self, time):
 #        pass
-#
-#    def info(self):
-#        pass
+
+    def info(self):
+        # TODO: check all but the first value
+        return [libvirt.VIR_DOMAIN_RUNNING, 0, 0, 1, 0] 
 
     def vcpus(self):
         # TODO: does this count as hack?
