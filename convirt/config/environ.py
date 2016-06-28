@@ -46,7 +46,6 @@ _ENV = Environment(
     run_dir='/run/convirt',
     use_sudo=True,
     cgroup_slice='convirt',  # XXX: or 'machine' ?
-    net_fallback=True,
 )
 
 

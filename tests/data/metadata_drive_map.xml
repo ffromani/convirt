@@ -25,5 +25,11 @@
       <boot order="2"/>
       <driver cache="none" error_policy="stop" io="native" name="qemu" type="qcow2"/>
     </disk>
+    <interface type="bridge">
+       <mac address="00:1a:4a:16:01:57"/>
+       <model type="virtio"/>
+       <source bridge="ovirtmgmt"/>
+       <link state="up"/>
+    </interface>
   </devices>
 </domain>

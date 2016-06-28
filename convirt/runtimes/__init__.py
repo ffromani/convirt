@@ -81,15 +81,7 @@ class ContainerRuntime(object):
         mem = dom.memory()
         path, volumes = dom.drives()
         mapping = dom.drives_map()
-        try:
-            net = dom.network()
-        except ConfigError:
-            if self._conf.net_fallback:
-                self._log.debug('no network detected for %r, using default',
-                                self.uuid)
-                net = None
-            else:
-                raise
+        net = dom.network()
         self._run_conf = RunConfig(path, volumes, mapping, mem, net)
         self._log.debug('configured runtime %s: %s',
                         self.uuid, self._run_conf)

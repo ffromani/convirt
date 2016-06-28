@@ -141,7 +141,7 @@ class RuntimeContainerConfigureTests(testlib.TestCase):
 
     def test_bridge_down(self):
         root = ET.fromstring(testlib.bridge_down_dom_xml())
-        with testlib.global_conf(net_fallback=False) as conf:
+        with testlib.global_conf() as conf:
             base = convirt.runtimes.ContainerRuntime(
                 conf, rt_uuid=self.vm_uuid)
             self.assertRaises(convirt.runtimes.ConfigError,
@@ -150,7 +150,7 @@ class RuntimeContainerConfigureTests(testlib.TestCase):
 
     def test_bridge_no_source(self):
         root = ET.fromstring(testlib.bridge_no_source_dom_xml())
-        with testlib.global_conf(net_fallback=False) as conf:
+        with testlib.global_conf() as conf:
             base = convirt.runtimes.ContainerRuntime(
                 conf, rt_uuid=self.vm_uuid)
             self.assertRaises(convirt.runtimes.ConfigError,
@@ -160,6 +160,7 @@ class RuntimeContainerConfigureTests(testlib.TestCase):
     def test_config_present(self):
         MEM = 4 * 1024 * 1024
         PATH = '/random/path/to/disk/image'
+        NET = 'ovirtmgmt'
         root = ET.fromstring("""
         <domain type='kvm' id='2'>
           <maxMemory slots='16' unit='KiB'>{mem}</maxMemory>
@@ -169,13 +170,19 @@ class RuntimeContainerConfigureTests(testlib.TestCase):
               </source>
               <target dev='vdb' bus='virtio'/>
             </disk>
+            <interface type="bridge">
+              <mac address="00:1a:4a:16:01:57"/>
+              <model type="virtio"/>
+              <source bridge="{net}"/>
+              <link state="up"/>
+            </interface>
           </devices>
-        </domain>""".format(mem=MEM*1024, path=PATH))
+        </domain>""".format(mem=MEM*1024, path=PATH, net=NET))
         self.assertNotRaises(self.base.configure, root)
         conf = self.base.runtime_config
         self.assertEquals(conf.image_path, PATH)
         self.assertEquals(conf.memory_size_mib, MEM)
-        self.assertEquals(conf.network, None)
+        self.assertEquals(conf.network, NET)
 
     def test_config_ovirt_vm(self):
         root = ET.fromstring(testlib.full_dom_xml())
