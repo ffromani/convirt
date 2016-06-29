@@ -103,11 +103,6 @@ class RunnableTestCase(TestCase):
     def setUp(self):
         self.guid = uuid.uuid4()
         self.run_dir = tempfile.mkdtemp()
-        with open(
-            os.path.join(self.run_dir,
-                         convirt.runtimes.rkt.Network.NAME), 'wt'
-        ) as f:
-            f.write('{}')
         paths = ['.', './tests']
         fake_sysctl = convirt.command.Path('fake-systemctl', paths=paths)
         fake_mctl = convirt.command.Path('true')

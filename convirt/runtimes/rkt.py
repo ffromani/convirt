@@ -73,7 +73,7 @@ class Rkt(ContainerRuntime):
     @classmethod
     def configure_runtime(cls):
         conf = network.current()
-        with Network() as net:
+        with Network(conf.name) as net:
             net.update(conf)
 
     @property
@@ -151,14 +151,19 @@ class Network(object):
 
     DIR = '/etc/rkt/net.d'
 
-    NAME = '50-convirt-containers.conf'
+    _NAME_TMPL = '50-%s.conf'
 
     _log = logging.getLogger('convirt.runtime.Rkt')
 
-    def __init__(self, name=None):
-        self._name = self.NAME if name is None else name
+    def __init__(self, name):
+        self._name = name
+        self._path = self._NAME_TMPL % name
         self._data = {}
         self._dirty = False
+
+    @property
+    def filename(self):
+        return self._path
 
     def __enter__(self):
         self.load()
@@ -173,7 +178,7 @@ class Network(object):
 
     @property
     def path(self):
-        return os.path.join(self.DIR, self._name)
+        return os.path.join(self.DIR, self._path)
 
     def update(self, conf):
         new_data = self._make(conf)
@@ -210,12 +215,11 @@ class Network(object):
         }
 
     def _make(self, conf):
-        name = conf.get("name", None) or conf["bridge"]
         bridge = conf["bridge"]
         self._log.debug('config: using bridge %r for %r',
-                        bridge, name)
+                        bridge, self._name)
         return {
-            "name": name,
+            "name": self._name,
             "type": "bridge",
             "bridge": bridge,
             "ipam": self._make_ipam(conf)

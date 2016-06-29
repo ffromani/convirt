@@ -95,35 +95,38 @@ class RktTests(testlib.RunnableTestCase):
 class NetworkTests(testlib.TestCase):
 
     def test_path(self):
-        NAME = '99-test.conf'
-        net = rts.rkt.Network(name=NAME)
-        self.assertTrue(net.path.endswith(NAME))
+        NAME = 'test'
+        net = rts.rkt.Network(NAME)
+        self.assertIn(NAME, net.filename)
+        self.assertTrue(net.path.endswith(net.filename))
         self.assertTrue(net.path.startswith(rts.rkt.Network.DIR))
 
     def test_save_without_changes(self):
         with testlib.named_temp_dir() as tmp_dir:
             with monkey.patch_scope([(rts.rkt.Network, 'DIR', tmp_dir)]):
-                net = rts.rkt.Network()
+                net = rts.rkt.Network('test')
                 net.save()
                 self.assertFalse(os.path.exists(net.path))
 
     def test_save_forced(self):
         with testlib.named_temp_dir() as tmp_dir:
             with monkey.patch_scope([(rts.rkt.Network, 'DIR', tmp_dir)]):
-                net = rts.rkt.Network()
+                net = rts.rkt.Network('test')
                 net.save(force=True)
                 self.assertTrue(os.path.exists(net.path))
 
     def test_update(self):
+        NAME = 'test'
         with testlib.named_temp_dir() as tmp_dir:
             with monkey.patch_scope([(rts.rkt.Network, 'DIR', tmp_dir)]):
-                net1 = rts.rkt.Network()
+                net1 = rts.rkt.Network(NAME)
                 net1.update({
+                    'name': NAME,
                     'bridge': 'foobar',
                     'subnet': '192.168.42.0',
                     'mask': 27,
                 })
-                net2 = rts.rkt.Network()
+                net2 = rts.rkt.Network('test2')
                 self.assertNotEquals(net1, net2)
                 net1.save()
                 self.assertTrue(os.path.exists(net1.path))
@@ -131,22 +134,22 @@ class NetworkTests(testlib.TestCase):
     def test_load(self):
         with testlib.named_temp_dir() as tmp_dir:
             with monkey.patch_scope([(rts.rkt.Network, 'DIR', tmp_dir)]):
-                net1 = rts.rkt.Network()
+                net1 = rts.rkt.Network('test1')
                 net1.save(force=True)
-                net2 = rts.rkt.Network()
+                net2 = rts.rkt.Network('test2')
                 net2.load()
                 self.assertEquals(net1, net2)
 
     def test_load_missing(self):
         with testlib.named_temp_dir() as tmp_dir:
             with monkey.patch_scope([(rts.rkt.Network, 'DIR', tmp_dir)]):
-                net1 = rts.rkt.Network()
+                net1 = rts.rkt.Network('test')
                 self.assertEqual(net1.load(), {})
 
     def test_clear(self):
         with testlib.named_temp_dir() as tmp_dir:
             with monkey.patch_scope([(rts.rkt.Network, 'DIR', tmp_dir)]):
-                net = rts.rkt.Network()
+                net = rts.rkt.Network('test')
                 net.save(force=True)
                 self.assertTrue(os.path.exists(net.path))
                 net.clear()
@@ -156,7 +159,7 @@ class NetworkTests(testlib.TestCase):
         with testlib.named_temp_dir() as tmp_dir:
             with monkey.patch_scope([(rts.rkt.Network, 'DIR', tmp_dir)]):
                 conf1 = {
-                    'name': 'test-net',
+                    'name': 'testnet',
                     'bridge': 'foobar',
                     'subnet': '192.168.42.0',
                     'mask': 27,
@@ -164,12 +167,12 @@ class NetworkTests(testlib.TestCase):
                 conf2 = conf1.copy()
                 conf2['mask'] = 28
 
-                net1 = rts.rkt.Network()
+                net1 = rts.rkt.Network('testnet')
                 net1.update(conf1)
                 net1.save()
                 self.assertEquals(net1.get_conf(), conf1)
 
-                with rts.rkt.Network() as net2:
+                with rts.rkt.Network('testnet') as net2:
                     net2.update(conf2)
 
                 net1.load()
