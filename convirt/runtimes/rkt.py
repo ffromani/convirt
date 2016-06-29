@@ -91,6 +91,7 @@ class Rkt(ContainerRuntime):
 
     def resync(self):
         self._collect_rkt_uuid(self._rkt_uuid_path)
+        self._collect_rkt_pid()
 
     def stop(self):
         if not self.running:
@@ -145,6 +146,32 @@ class Rkt(ContainerRuntime):
         self._rkt_uuid = data.strip()
         self._log.info('rkt container %s rkt_uuid %s',
                        self._uuid, self._rkt_uuid)
+
+    def _collect_rkt_pid(self):
+        cmd = [
+            Rkt._PATH.cmd,
+            'status',
+            self._rkt_uuid
+        ]
+        out = self._runner.call(cmd, output=True)
+        # TODO: find a better solution
+        data = _parse_keyval(out.decode('utf-8'))
+
+        if data['state'] != 'running':
+            raise runner.OperationFailed('container not running: %r',
+                                         data['state'])
+        # the pid is still stored, so it is meaningful only if running
+        self._pid = int(data['pid'])
+
+
+def _parse_keyval(output):
+    res = {}
+    for line in output.splitlines():
+        if not line:
+            continue
+        key, val = line.split('=', 1)
+        res[key] = val
+    return res
 
 
 class Network(object):

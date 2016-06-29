@@ -91,6 +91,17 @@ class RktTests(testlib.RunnableTestCase):
                               read_file=_fail_read)
             self.assertRaises(convirt.runner.OperationFailed, rkt.resync)
 
+    def test_resync(self):
+        rkt = rts.rkt.Rkt(testlib.make_conf(run_dir=self.run_dir))
+        root = ET.fromstring(testlib.minimal_dom_xml())
+        rkt.configure(root)
+        rkt.start()
+        try:
+            self.assertNotEquals(rkt.pid, 0)
+            # TODO: pass pid through env var?
+        finally:
+            rkt.stop()
+
 
 class NetworkTests(testlib.TestCase):
 

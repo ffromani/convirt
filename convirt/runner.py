@@ -91,6 +91,14 @@ class Base(object):
     def start(self, args):
         self._running = True
 
+    def get_pid(self):
+        if not self._running:
+            raise RuntimeError("not yet started")
+        return 0
+
+    def call(self, cmd, output=False):
+        raise NotImplementedError
+
     @classmethod
     def stats(cls):
         return []
@@ -153,8 +161,11 @@ class Subproc(Base):
         for item in _parse_systemctl_list_units(output):
             yield item
 
-    def call(self, cmd):
-        run_cmd(cmd, self._unit_name, self._conf.use_sudo)
+    def call(self, cmd, output=False):
+        return run_cmd(cmd,
+                       tag=self._unit_name,
+                       system=self._conf.use_sudo,
+                       output=output)
 
 
 

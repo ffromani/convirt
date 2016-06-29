@@ -67,6 +67,11 @@ class ContainerRuntime(object):
         self._run_conf = None
         self._runner = runr(self.unit_name())
         self._runner.configure(self._conf)
+        self._pid = 0
+
+    @property
+    def pid(self):
+        return self._pid
 
     @property
     def uuid(self):

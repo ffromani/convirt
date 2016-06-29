@@ -2,6 +2,7 @@
 
 import os
 import os.path
+import random
 import sys
 import uuid
 
@@ -33,11 +34,29 @@ def _run(args):
         sys.exit(2)
 
 
+def _status(rkt_uuid):
+    print(
+"""state=running
+created=2016-06-29 10:10:07.441 +0200 CEST
+started=2016-06-29 10:10:08.548 +0200 CEST
+networks=default:ip4=172.16.28.5
+pid=%i
+exited=false""" % (random.randint(10, 65535)))
+
+
+
 def _main(args):
+    if not args:
+        sys.exit(1)
+
     if 'gc' in args:
         _gc(args)
     elif 'run' in args:
         _run(args)
+    elif 'status' == args[0]:
+        if len(args) != 2:
+            sys.exit(1)
+        _status(args[1])
 
 
 if __name__ == "__main__":
