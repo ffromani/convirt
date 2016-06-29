@@ -30,6 +30,7 @@ import unittest
 import convirt.command
 import convirt.config
 import convirt.config.environ
+import convirt.metrics.cgroups
 import convirt.runtime
 import convirt.runtimes
 
@@ -115,7 +116,8 @@ class RunnableTestCase(TestCase):
             (convirt.runtimes.rkt.Rkt, '_PATH', fake_rkt),
             (convirt.command, 'machinectl', fake_mctl),
             (convirt.command, 'systemctl', fake_sysctl),
-            (convirt.command, 'systemd_run', fake_sdrun)])
+            (convirt.command, 'systemd_run', fake_sdrun),
+        ])
         self.patch.apply()
         convirt.runtime.clear()
         convirt.runtime.configure()
@@ -123,6 +125,24 @@ class RunnableTestCase(TestCase):
     def tearDown(self):
         self.patch.revert()
         shutil.rmtree(self.run_dir)
+
+
+class CgroupTestCase(TestCase):
+
+    def setUp(self):
+        self.pid = 0
+        testdir = os.path.dirname(os.path.abspath(__file__))
+        self.root = os.path.join(testdir, 'fake')
+        self.patch = monkey.Patch([
+            (convirt.metrics.cgroups, '_PROCBASE',
+             self.root + '/' + convirt.metrics.cgroups.PROCFS),
+            (convirt.metrics.cgroups, '_CGROUPBASE',
+             self.root + '/' + convirt.metrics.cgroups.CGROUPFS),
+        ])
+        self.patch.apply()
+
+    def tearDown(self):
+        self.patch.revert()
 
 
 class FakeRunnableTestCase(TestCase):
