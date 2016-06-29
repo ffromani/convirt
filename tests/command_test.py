@@ -21,6 +21,7 @@ from __future__ import absolute_import
 
 import os
 import subprocess
+import uuid
 
 import convirt
 import convirt.command
@@ -56,3 +57,73 @@ class PathTests(testlib.TestCase):
         with monkey.patch_scope([(os, 'environ', {})]):
             cp = convirt.command.Path('sh')
             self.assertRaises(convirt.command.NotFound, cp.cmd)
+
+
+class CommandTests(testlib.RunnableTestCase):
+
+    def test_from_name(self):
+        echo = convirt.command.Path('echo')
+        cmd = convirt.command.Command.from_name('echo', '${message}')
+        msg = 'test'
+        self.assertEquals(cmd.cmdline(message=msg), [echo.cmd, msg])
+
+    def test_command_line(self):
+        cmd = convirt.command.Command(convirt.command.machinectl,
+                                     'poweroff ${uuid}')
+        vmid = str(uuid.uuid4())
+        self.assertEquals(cmd.cmdline(uuid=vmid), [
+            convirt.command.machinectl.cmd,
+            'poweroff',
+            vmid
+        ])
+
+    def test_command_nested(self):
+        mctl = convirt.command.Command(convirt.command.machinectl,
+                                       'poweroff ${uuid}')
+        sdrun = convirt.command.Command(convirt.command.systemd_run,
+                                       '${cmd}')
+        vmid = str(uuid.uuid4())
+        self.assertEquals(sdrun.cmdline(cmd=mctl, uuid=vmid), [
+            convirt.command.systemd_run.cmd,
+            convirt.command.machinectl.cmd,
+            'poweroff',
+            vmid
+        ])
+
+    def test_command_nested_flatten(self):
+        sdrun = convirt.command.Command(convirt.command.systemd_run,
+                                       '${machinectl} poweroff ${uuid}')
+        vmid = str(uuid.uuid4())
+        self.assertEquals(sdrun.cmdline(
+                machinectl=convirt.command.machinectl.cmd,
+                uuid=vmid), [
+            convirt.command.systemd_run.cmd,
+            convirt.command.machinectl.cmd,
+            'poweroff',
+            vmid
+        ])
+
+    def test_call(self):
+        echo = convirt.command.Path('echo')
+        cmd = convirt.command.Command.from_name('echo', '${message}')
+        self.assertRaises(NotImplementedError,
+                          cmd,
+                          message='test')
+
+    def test_not_allowed(self):
+        echo = convirt.command.Path('echo')
+        cmd = convirt.command.Command.from_name('echo', '${message}')
+        cmd.allowed = lambda *args: False
+        self.assertRaises(convirt.command.NotAllowed,
+                          cmd,
+                          message='test')
+
+
+ 
+class FakeCommandTests(testlib.RunnableTestCase):
+
+    def test_call(self):
+        echo = convirt.command.Path('echo')
+        cmd = convirt.command.FakeCommand.from_name('echo', '${message}')
+        msg = 'test'
+        self.assertEquals(cmd(message=msg), '%s %s' % (echo.cmd, msg))
