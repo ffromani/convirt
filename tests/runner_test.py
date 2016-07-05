@@ -33,14 +33,20 @@ from . import testlib
 class RuntimeListTests(testlib.TestCase):
 
     def test_pristine(self):
-        runr = convirt.runner.Subproc('testing')
+        runr = convirt.runner.Runner(
+            'testing',
+            convirt.command.Repo(),
+        )
         conts = list(runr.get_all())
         self.assertEqual(conts, [])
 
     # we need something we are confident can't exist
     @monkey.patch_function(convirt.runner, 'PREFIX', str(uuid.uuid4()))
     def test_no_output(self):
-        runr = convirt.runner.Subproc('testing')
+        runr = convirt.runner.Runner(
+            'testing',
+            convirt.command.Repo(),
+        )
         conts = list(runr.get_all())
         self.assertEqual(conts, [])
 
@@ -55,7 +61,10 @@ convirt-%s.service                                                loaded active 
 
         with monkey.patch_scope([(subprocess, 'check_output',
                                   fake_check_output)]):
-            runr = convirt.runner.Subproc('testing')
+            runr = convirt.runner.Runner(
+                'testing',
+                convirt.command.Repo(),
+            )
             conts = list(runr.get_all())
             self.assertEqual(conts, [VM_UUID])
 
@@ -95,96 +104,79 @@ systemd-tmpfiles-clean.timer                                                    
         self.assertEqual(names, [])
 
 
-class SubprocTests(testlib.TestCase):
+class RunnerTests(testlib.TestCase):
 
     def setUp(self):
         self.unit_name = 'test'
 
     def test_created_not_running(self):
-        runner = convirt.runner.Subproc(self.unit_name)
-        self.assertFalse(runner.running)
+        runr = convirt.runner.Runner(
+            self.unit_name,
+            convirt.command.Repo(),
+        )
+        self.assertFalse(runr.running)
 
     def test_run_default_conf(self):
 
-        def _fake_call(cmd):
-            # at least:
-            # 1. systemd-run
-            # 2. --unit
-            # 3. exec path
-            self.assertGreaterEqual(len(cmd), 3)
-            self.assertIn('systemd-run', cmd[0])
-            unit_found = any(
-                c.startswith('--unit') and self.unit_name in c
-                for c in cmd
-            )
-            self.assertTrue(unit_found)
+        runr = convirt.runner.Runner(
+            self.unit_name,
+            testlib.FakeRepo(),
+        )
 
-        runner = convirt.runner.Subproc(self.unit_name)
-        with monkey.patch_scope([(runner, 'call', _fake_call)]):
-            runner.start(['/bin/sleep', '42m'])
-            self.assertTrue(runner.running)
+        runr.start(command='/bin/sleep 42m')
+        self.assertTrue(runr.running)
 
-    def test_run_with_specific_uid(self):
-        uid = 1764
-
-        def _fake_call(cmd):
-            uid_found = any(
-                'uid=%i' % uid in c for c in cmd
-            )
-            self.assertTrue(uid_found)
-
-        conf = convirt.config.environ.current()
-        conf.uid = uid
-        runner = convirt.runner.Subproc(self.unit_name)
-        runner.configure(conf)
-        with monkey.patch_scope([(runner, 'call', _fake_call)]):
-            runner.start(['/bin/sleep', '42m'])
-
-    def test_run_with_specific_gid(self):
-        gid = 1764
-
-        def _fake_call(cmd):
-            gid_found = any(
-                'gid=%i' % gid in c for c in cmd
-            )
-            self.assertTrue(gid_found)
-
-        conf = convirt.config.environ.current()
-        conf.gid = gid
-        runner = convirt.runner.Subproc(self.unit_name)
-        runner.configure(conf)
-        with monkey.patch_scope([(runner, 'call', _fake_call)]):
-            runner.start(['/bin/sleep', '42m'])
-
-    def test_call_fails(self):
-        conf = convirt.config.environ.current()
-        conf.use_sudo = True
-        runner = convirt.runner.Subproc(self.unit_name)
-        runner.configure(conf)
-        _false = convirt.command.Path('false')
-        with monkey.patch_scope([(convirt.runner, '_SUDO', _false)]):
-            self.assertRaises(
-                convirt.runner.OperationFailed,
-                runner.start,
-                ['/bin/sleep', '42s'],
-            )
+        # at least:
+        # 1. systemd-run
+        # 2. --unit
+        # 3. exec path
+        cmd =  runr._systemd_run.executions[0]  # FIXME
+        self.assertGreaterEqual(len(cmd), 3)
+        self.assertIn('systemd-run', cmd[0])
+        unit_found = any(
+            c.startswith('--unit') and self.unit_name in c
+            for c in cmd
+        )
+        self.assertTrue(unit_found)
 
     def test_stop(self):
 
-        def _fake_call(cmd):
-            # exactly:
-            # 1. systemdctl
-            # 2. stop
-            # 3. unit-name
-            self.assertEqual(len(cmd), 3)
-            self.assertIn('systemctl', cmd[0])
-            self.assertEqual('stop', cmd[1])
-            self.assertIn(self.unit_name, cmd[2])
+        runr = convirt.runner.Runner(
+            self.unit_name,
+            testlib.FakeRepo(),
+        )
+        runr.stop()
 
-        runner = convirt.runner.Subproc(self.unit_name)
-        with monkey.patch_scope([(runner, 'call', _fake_call)]):
-            runner.stop()
+        cmd =  runr._systemctl_stop.executions[0]  # FIXME
+        # exactly:
+        # 1. systemdctl
+        # 2. stop
+        # 3. unit-name
+        self.assertEqual(len(cmd), 3)
+        self.assertIn('systemctl', cmd[0])
+        self.assertEqual('stop', cmd[1])
+        self.assertIn(self.unit_name, cmd[2])
 
     def test_stats_pristine(self):
-        stats = list(convirt.runner.Subproc.stats())
+        stats = list(convirt.runner.Runner.stats())
         self.assertEqual(stats, [])
+
+    def test_get_pid_not_started(self):
+        runr = convirt.runner.Runner(
+            self.unit_name,
+            testlib.FakeRepo(),
+        )
+
+        self.assertFalse(runr.running)
+        self.assertRaises(convirt.runner.OperationFailed,
+                          runr.get_pid)
+
+    def test_get_pid(self):
+        runr = convirt.runner.Runner(
+            self.unit_name,
+            testlib.FakeRepo(),
+        )
+
+        runr.start(command='/bin/sleep 42m')
+        self.assertTrue(runr.running)
+        self.assertEqual(runr.get_pid(), 0)

@@ -81,9 +81,6 @@ class ConnectionAPITests(testlib.FakeRunnableTestCase):
         super(ConnectionAPITests, self).setUp()
         convirt.doms.clear()
 
-    def tearDown(self):
-        convirt.doms.clear()
-
     def test_get_lib_version(self):
         conn = convirt.openConnection('convirt:///system')
         ver = conn.getLibVersion()

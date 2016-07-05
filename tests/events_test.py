@@ -53,7 +53,7 @@ class ConnectionTests(testlib.TestCase):
             libvirt.VIR_DOMAIN_EVENT_ID_WATCHDOG,
         )
 
-        conn = convirt.connection.Connection()
+        conn = convirt.connection.Connection(testlib.FakeRepo())
         for ev in events:
             conn.domainEventRegisterAny(None, ev, _handler, ev)
 
@@ -68,9 +68,12 @@ class ConnectionTests(testlib.TestCase):
         def _cb(*args, **kwargs):
             called[0] = True
 
-        conn = convirt.connection.Connection()
-        dom = convirt.domain.Domain(testlib.minimal_dom_xml(),
-                                    convirt.config.environ.current())
+        conn = convirt.connection.Connection(testlib.FakeRepo())
+        dom = convirt.domain.Domain(
+            testlib.minimal_dom_xml(),
+            convirt.config.environ.current(),
+            testlib.FakeRepo(),
+        )
         conn.domainEventRegisterAny(dom, evt, _cb, None)
 
         # FIXME
@@ -90,7 +93,7 @@ class ConnectionTests(testlib.TestCase):
         def _cb(conn, dom, opaque):
             called[opaque] = True
 
-        conn = convirt.connection.Connection()
+        conn = convirt.connection.Connection(testlib.FakeRepo())
         for idx in range(NUM):
             conn.domainEventRegisterAny(None, evt, _cb, None)
 
@@ -105,8 +108,11 @@ class ConnectionTests(testlib.TestCase):
                              None)
 
     def test_fire_unknown_event_through_dom(self):
-        dom = convirt.domain.Domain(testlib.minimal_dom_xml(),
-                                    convirt.config.environ.current())
+        dom = convirt.domain.Domain(
+            testlib.minimal_dom_xml(),
+            convirt.config.environ.current(),
+            testlib.FakeRepo(),
+        )
         self.assertNotRaises(dom.events.fire,
                              libvirt.VIR_DOMAIN_EVENT_ID_REBOOT,
                              None)

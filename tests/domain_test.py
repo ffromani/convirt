@@ -56,7 +56,8 @@ class DomainIdsTests(testlib.RunnableTestCase):
         """
         self.dom = convirt.domain.Domain(
             self.xmldesc % str(self.guid),
-            convirt.config.environ.current()
+            convirt.config.environ.current(),
+            convirt.command.Repo(),
         )
 
     def test_ID(self):
@@ -70,15 +71,21 @@ class DomainXMLTests(testlib.RunnableTestCase):
 
     def test_XMLDesc(self):
         dom_xml = testlib.minimal_dom_xml()
-        dom = convirt.domain.Domain(dom_xml,
-                                    convirt.config.environ.current())
+        dom = convirt.domain.Domain(
+            dom_xml,
+            convirt.config.environ.current(),
+            convirt.command.Repo(),
+        )
         self.assertEqual(dom.XMLDesc(0), dom_xml)
 
     def test_XMLDesc_ignore_flags(self):
         # TODO: provide XML to exercise all the features.
         _TEST_DOM_XML = testlib.minimal_dom_xml()
-        dom = convirt.domain.Domain(_TEST_DOM_XML,
-                                    convirt.config.environ.current())
+        dom = convirt.domain.Domain(
+            _TEST_DOM_XML,
+            convirt.config.environ.current(),
+            convirt.command.Repo(),
+        )
         self.assertEqual(
             dom.XMLDesc(libvirt.VIR_DOMAIN_XML_SECURE),
             _TEST_DOM_XML)
@@ -106,17 +113,27 @@ class DomainXMLTests(testlib.RunnableTestCase):
         self.assertRaises(convirt.runtimes.ConfigError,
                           convirt.domain.Domain,
                           xmldesc,
-                          convirt.config.environ.current())
+                          convirt.config.environ.current(),
+                          convirt.command.Repo())
 
 
 class DomainAPITests(testlib.FakeRunnableTestCase):
 
     def test_reset(self):
-        self.dom.reset(0)
 
-        self.assertEquals(len(self.runners), 1)
-        self.assertTrue(self.runners[0].started)
-        self.assertTrue(self.runners[0].stopped)
+        with testlib.named_temp_dir() as tmp_dir:
+            conf = testlib.make_conf(run_dir=tmp_dir)
+            dom = convirt.domain.Domain.create(
+                testlib.minimal_dom_xml(),
+                conf,
+                convirt.command.Repo(),
+            )
+
+            dom.reset(0)
+
+        # FIXME
+        self.assertTrue(dom._rt.actions['start'], 2)
+        self.assertTrue(dom._rt.actions['stop'], 1)
 
     def test_controlInfo(self):
         info = self.dom.controlInfo()
@@ -136,8 +153,11 @@ class DomainAPITests(testlib.FakeRunnableTestCase):
 class UnsupportedAPITests(testlib.RunnableTestCase):
 
     def test_migrate(self):
-        dom = convirt.domain.Domain(testlib.minimal_dom_xml(),
-                                    convirt.config.environ.current())
+        dom = convirt.domain.Domain(
+            testlib.minimal_dom_xml(),
+            convirt.config.environ.current(),
+            convirt.command.Repo(),
+        )
         self.assertRaises(libvirt.libvirtError,
                           dom.migrate,
                           {})
@@ -145,11 +165,18 @@ class UnsupportedAPITests(testlib.RunnableTestCase):
 
 class RegistrationTests(testlib.RunnableTestCase):
 
+    def setUp(self):
+        super(RegistrationTests, self).setUp()
+        convirt.doms.clear()
+
     def test_destroy_registered(self):
         with testlib.named_temp_dir() as tmp_dir:
             conf = testlib.make_conf(run_dir=tmp_dir)
             dom = convirt.domain.Domain.create(
-                testlib.minimal_dom_xml(), conf)
+                testlib.minimal_dom_xml(),
+                conf,
+                convirt.command.Repo(),
+            )
 
         existing_doms = convirt.doms.get_all()
         self.assertEquals(len(existing_doms), 1)
@@ -161,7 +188,11 @@ class RegistrationTests(testlib.RunnableTestCase):
         # you need to call create() to register into `doms'.
         with testlib.named_temp_dir() as tmp_dir:
             conf = testlib.make_conf(run_dir=tmp_dir)
-            dom = convirt.domain.Domain(testlib.minimal_dom_xml(), conf)
+            dom = convirt.domain.Domain(
+                testlib.minimal_dom_xml(),
+                conf,
+                convirt.command.Repo(),
+            )
 
         self.assertEquals(convirt.doms.get_all(), [])
         self.assertRaises(libvirt.libvirtError, dom.destroy)
@@ -170,7 +201,10 @@ class RegistrationTests(testlib.RunnableTestCase):
         with testlib.named_temp_dir() as tmp_dir:
             conf = testlib.make_conf(run_dir=tmp_dir)
             dom = convirt.domain.Domain.create(
-                testlib.minimal_dom_xml(), conf)
+                testlib.minimal_dom_xml(),
+                conf,
+                convirt.command.Repo(),
+            )
 
         convirt.doms.remove(dom.UUIDString())
         self.assertRaises(libvirt.libvirtError, dom.destroy)
@@ -190,7 +224,11 @@ class RecoveryTests(testlib.TestCase):
             with monkey.patch_scope([(convirt.runtime, 'create',
                                       self._fake_create)]):
                 convirt.domain.Domain.recover(
-                    vm_uuid, testlib.minimal_dom_xml(vm_uuid), conf)
+                    vm_uuid,
+                    testlib.minimal_dom_xml(vm_uuid),
+                    conf,
+                    testlib.FakeRepo(),
+                )
 
         existing_doms = convirt.doms.get_all()
         self.assertEquals(len(existing_doms), 1)

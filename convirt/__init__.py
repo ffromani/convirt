@@ -19,12 +19,14 @@
 #
 from __future__ import absolute_import
 
+import functools
 import logging
 
 
 from .config import environ
 from .domain import Domain
 from .xmlfile import XMLFile
+from . import command
 from . import connection
 from . import doms
 from . import errors
@@ -36,34 +38,36 @@ from . import runtime
 _log = logging.getLogger('convirt')
 
 
-def monitorAllDomains(runr=None):
+def monitorAllDomains(repo=None):
     """
     Must not require root privileges.
     """
-    runr = runner.Subproc if runr is None else runr
-    monitoring.watchdog(runr.get_all)
+    repo = command.Repo() if repo is None else repo
+    get_vm_uuids = functools.partial(runner.Runner.get_all, repo)
+    monitoring.watchdog(get_vm_uuids)
 
 
-def recoveryAllDomains(runr=None):
-    runr = runner.Subproc if runr is None else runr
+def recoveryAllDomains(repo=None):
     conf = environ.current()
-    for rt_uuid in runr.get_all():
+    repo = command.Repo() if repo is None else repo
+    for rt_uuid in runner.Runner.get_all(repo):
         _log.debug('trying to recover container %r', rt_uuid)
         xml_file = XMLFile(rt_uuid, conf)
         try:
-            Domain.recover(rt_uuid, xml_file.read(), conf)
+            Domain.recover(rt_uuid, xml_file.read(), conf, repo)
         except Exception:  # FIXME: too coarse
             _log.exception('failed to recover container %r', rt_uuid)
+            logging.exception('failed to recover container %r', rt_uuid)
         else:
             _log.debug('recovered container %r', rt_uuid)
     return doms.get_all()
 
 
-def openConnection(uri, runr=None):
-    runr = runner.Subproc if runr is None else runr
+def openConnection(uri, repo=None):
     if uri != 'convirt:///system':
         errors.throw()  # TODO: more specific error?
-    return connection.Connection(runr)
+    repo = command.Repo() if repo is None else repo
+    return connection.Connection(repo)
 
 
 def openAuth(uri, auth, flags=0):

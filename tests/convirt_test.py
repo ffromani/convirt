@@ -39,7 +39,8 @@ class APITests(testlib.RunnableTestCase):
     def tearDown(self):
         convirt.doms.clear()
 
-    def test_monitor_domains(self):
+    # TODO: add test with found (monkeypatched)
+    def test_monitor_domains_missing(self):
         evt = libvirt.VIR_DOMAIN_EVENT_ID_LIFECYCLE
 
         delivered = []
@@ -47,20 +48,20 @@ class APITests(testlib.RunnableTestCase):
         def _cb(*args, **kwargs):
             delivered.append(args)
 
-        conn = convirt.connection.Connection()
+        repo = convirt.command.Repo()
+        conn = convirt.connection.Connection(repo)
         with testlib.named_temp_dir() as tmp_dir:
             with testlib.global_conf(run_dir=tmp_dir):
                 dom = conn.createXML(testlib.minimal_dom_xml(), 0)
                 conn.domainEventRegisterAny(dom, evt, _cb, None)
+                convirt.monitorAllDomains(repo)
 
-                class FakeRunner(object):
-                    @classmethod
-                    def get_all(cls):
-                        return [dom.runtimeUUIDString()]
-
-                convirt.monitorAllDomains(FakeRunner)
-
-        self.assertEquals(delivered, [])
+        self.assertEquals(delivered, [(
+                            conn,
+                            dom,
+                            libvirt.VIR_DOMAIN_EVENT_STOPPED,
+                            libvirt.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN),
+                        ])
 
 
 def _handler(*args, **kwargs):

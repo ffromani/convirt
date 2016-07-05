@@ -22,8 +22,9 @@ from __future__ import absolute_import
 import logging
 import threading
 
-from .runtimes import rkt
+from .runtimes import fake
 from .runtimes import docker
+from .runtimes import rkt
 
 
 _lock = threading.Lock()
@@ -34,7 +35,7 @@ _ready = False
 def _register():
     global _runtimes
     if not _runtimes:
-        runtimes = {}
+        runtimes = {fake.Fake.NAME: fake.Fake}
         if docker.Docker.available():
             runtimes[docker.Docker.NAME] = docker.Docker
         if rkt.Rkt.available():
@@ -61,7 +62,7 @@ class SetupError(Exception):
 _log = logging.getLogger('convirt.runtime')
 
 
-def create(rt, conf, **kwargs):
+def create(rt, conf, repo, **kwargs):
     global _lock
     global _runtimes
 
@@ -72,7 +73,7 @@ def create(rt, conf, **kwargs):
         raise Unsupported(rt)
 
     _log.debug('creating container with runtime %r', klass.NAME)
-    return klass(conf, **kwargs)
+    return klass(conf, repo, **kwargs)
 
 
 # FIXME: testing (half-hack)

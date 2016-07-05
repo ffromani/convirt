@@ -33,49 +33,19 @@ from . import monkey
 from . import testlib
 
 
-class RaisingPath(object):
-    def __init__(self):
-        self.cmd = None
-
-    def get(self):
-        raise convirt.command.NotFound()
-
-
-class RuntimeContainerAvailabilityTests(testlib.TestCase):
-
-    def test_raising(self):
-        with monkey.patch_scope(
-            [(convirt.runtimes.ContainerRuntime, '_PATH', RaisingPath())]
-        ):
-            self.assertFalse(convirt.runtimes.ContainerRuntime.available())
-
-    def test_not_available(self):
-        with monkey.patch_scope(
-            [(convirt.runtimes.ContainerRuntime, '_PATH', testlib.NonePath())]
-        ):
-            self.assertFalse(convirt.runtimes.ContainerRuntime.available())
-
-    def test_available(self):
-        with monkey.patch_scope(
-            [(convirt.runtimes.ContainerRuntime, '_PATH', testlib.TruePath())]
-        ):
-            self.assertTrue(convirt.runtimes.ContainerRuntime.available())
-
-
 class RuntimeContainerUnimplementedAPITests(testlib.TestCase):
 
     def setUp(self):
         self.base = convirt.runtimes.ContainerRuntime(
-            convirt.config.environ.current())
+            convirt.config.environ.current(),
+            testlib.FakeRepo(),
+        )
 
     def test_unit_name(self):
         self.assertTrue(self.base.unit_name())  # TODO: improve
 
     def test_start(self):
         self.assertRaises(NotImplementedError, self.base.start, '')
-
-    def test_resync(self):
-        self.assertRaises(NotImplementedError, self.base.resync)
 
     def test_stop(self):
         self.assertRaises(NotImplementedError, self.base.stop)
@@ -105,7 +75,10 @@ class RuntimeContainerConfigureTests(testlib.TestCase):
         self.vm_uuid = str(uuid.uuid4())
         self.conf = convirt.config.environ.current()
         self.base = convirt.runtimes.ContainerRuntime(
-            self.conf, rt_uuid=self.vm_uuid)
+            self.conf,
+            testlib.FakeRepo(),
+            rt_uuid=self.vm_uuid,
+        )
 
     def test_missing_content(self):
         root = ET.fromstring("<domain type='kvm' id='2'></domain>")
@@ -143,7 +116,10 @@ class RuntimeContainerConfigureTests(testlib.TestCase):
         root = ET.fromstring(testlib.bridge_down_dom_xml())
         with testlib.global_conf() as conf:
             base = convirt.runtimes.ContainerRuntime(
-                conf, rt_uuid=self.vm_uuid)
+                conf,
+                testlib.FakeRepo(),
+                rt_uuid=self.vm_uuid,
+            )
             self.assertRaises(convirt.runtimes.ConfigError,
                               base.configure,
                               root)
@@ -152,7 +128,10 @@ class RuntimeContainerConfigureTests(testlib.TestCase):
         root = ET.fromstring(testlib.bridge_no_source_dom_xml())
         with testlib.global_conf() as conf:
             base = convirt.runtimes.ContainerRuntime(
-                conf, rt_uuid=self.vm_uuid)
+                conf,
+                testlib.FakeRepo(),
+                rt_uuid=self.vm_uuid,
+            )
             self.assertRaises(convirt.runtimes.ConfigError,
                               base.configure,
                               root)
@@ -199,14 +178,23 @@ class RuntimeAPITests(testlib.RunnableTestCase):
 
     def test_create_supported(self):
         conf = convirt.config.environ.current()
-        self.assertTrue(convirt.runtime.create('rkt', conf))
+        self.assertTrue(
+            convirt.runtime.create(
+                'rkt',
+                conf,
+                testlib.FakeRepo(),
+            )
+        )
 
     def test_create_unsupported(self):
         conf = convirt.config.environ.current()
-        self.assertRaises(convirt.runtime.Unsupported,
-                          convirt.runtime.create,
-                          'lxc',
-                          conf)
+        self.assertRaises(
+            convirt.runtime.Unsupported,
+            convirt.runtime.create,
+            'lxc',
+            conf,
+            testlib.FakeRepo(),
+        )
 
     def test_supported(self):
         self.assertIn('rkt', convirt.runtime.supported(register=False))

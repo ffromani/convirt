@@ -23,6 +23,8 @@ import uuid
 
 import libvirt
 
+from . import command
+from . import config
 from . import domain
 from . import doms
 from . import errors
@@ -34,8 +36,8 @@ class Connection(object):
 
     _log = logging.getLogger('convirt.Connection')
 
-    def __init__(self, runr=runner.Subproc):
-        self._runr = runr
+    def __init__(self, repo):
+        self._repo = repo
         self.events = events.Handler(
             name='Connection(%s)' % id(self),
             parent=events.root
@@ -83,7 +85,8 @@ class Connection(object):
 
     def createXML(self, domxml, flags):
         # flags are unused
-        return domain.Domain.create(domxml, runr=self._runr.create)
+        conf = config.environ.current()
+        return domain.Domain.create(domxml, conf=conf, repo=self._repo)
 
     def getLibVersion(self):
         return 0x001002018  # TODO

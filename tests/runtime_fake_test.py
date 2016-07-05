@@ -26,6 +26,7 @@ import xml.etree.ElementTree as ET
 import convirt
 import convirt.config
 import convirt.config.environ
+import convirt.command
 import convirt.runner
 import convirt.runtimes as rts
 
@@ -33,37 +34,52 @@ from . import monkey
 from . import testlib
 
 
-class DockerTests(testlib.RunnableTestCase):
+class RuntimeFakeTests(testlib.RunnableTestCase):
+
+    def test_always_available(self):
+        self.assertTrue(rts.fake.Fake.available())
 
     def test_created_not_running(self):
-        docker = rts.docker.Docker(convirt.config.environ.current())
-        self.assertFalse(docker.running)
+        fake = rts.fake.Fake(
+            convirt.config.environ.current(),
+            convirt.command.Repo(),
+        )
+        self.assertFalse(fake.running)
 
     def test_start_stop(self):
-        docker = rts.docker.Docker(testlib.make_conf(run_dir=self.run_dir))
+        fake = rts.fake.Fake(
+            testlib.make_conf(run_dir=self.run_dir),
+            convirt.command.Repo(),
+        )
         root = ET.fromstring(testlib.minimal_dom_xml())
-        docker.configure(root)
-        docker.start()
+        fake.configure(root)
+        fake.start()
         try:
-            self.assertTrue(docker.running)
+            self.assertTrue(fake.running)
         finally:
-            docker.stop()
-            self.assertFalse(docker.running)
+            fake.stop()
+            self.assertFalse(fake.running)
 
     def test_start_twice(self):
-        docker = rts.docker.Docker(testlib.make_conf(run_dir=self.run_dir))
+        fake = rts.fake.Fake(
+            testlib.make_conf(run_dir=self.run_dir),
+            convirt.command.Repo(),
+        )
         root = ET.fromstring(testlib.minimal_dom_xml())
-        docker.configure(root)
-        docker.start()
+        fake.configure(root)
+        fake.start()
         try:
             self.assertRaises(convirt.runner.OperationFailed,
-                              docker.start)
+                              fake.start)
         finally:
             # not part of the test, but we don't want
             # to pollute the environment
-            docker.stop()
+            fake.stop()
 
     def test_stop_not_started(self):
-        docker = rts.docker.Docker(testlib.make_conf(run_dir=self.run_dir))
-        self.assertFalse(docker.running)
-        self.assertRaises(convirt.runner.OperationFailed, docker.stop)
+        fake = rts.fake.Fake(
+            testlib.make_conf(run_dir=self.run_dir),
+            convirt.command.Repo(),
+        )
+        self.assertFalse(fake.running)
+        self.assertRaises(convirt.runner.OperationFailed, fake.stop)

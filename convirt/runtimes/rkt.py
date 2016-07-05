@@ -34,41 +34,66 @@ from . import ContainerRuntime
 from six.moves import range
 
 
-_RKT = command.Path('rkt')
+rkt = command.Path('rkt')
 
 
-command.executables.append(_RKT)
+command.executables['rkt'] = rkt
+
+
+_TEMPLATES = {
+    'rkt_run':
+        '--uuid-file-save=${uuid_path} '
+        '--insecure-options=image '  # FIXME
+        '--net=${network} '
+        'run '
+        '${image} '
+        '--memory=${memsize}M',
+
+    'rkt_status':
+        'status '
+        '${rkt_uuid}',
+}
+
 
 
 class Rkt(ContainerRuntime):
 
-    _log = logging.getLogger('convirt.runtime.Rkt')
-
     NAME = 'rkt'
+
+    _log = logging.getLogger('convirt.runtime.Rkt')
 
     _PREFIX = 'rkt-'
 
     _RKT_UUID_FILE = 'rkt_uuid'
 
-    _PATH = _RKT
-
     _TRIES = 10  # TODO: make config item?
 
     _DELAY = 1  # seconds  TODO: make config item?
 
-    def __init__(self,
-                 conf,
-                 runr=runner.Subproc.create,
-                 rt_uuid=None,
-                 read_file=fs.read_file):
-        super(Rkt, self).__init__(conf, runr, rt_uuid)
+    @staticmethod
+    def available():
+        return rkt.available
+
+    def __init__(self, conf, repo,
+                 rt_uuid=None, read_file=fs.read_file):
+        super(Rkt, self).__init__(conf, repo, rt_uuid)
         self._read_file = read_file
         rkt_uuid_file = '%s.%s' % (self._uuid, self.NAME)
         self._rkt_uuid_path = os.path.join(
-            self._conf.run_dir, rkt_uuid_file)
-        self._log.debug('rkt runtime %s uuid_path=[%s]',
-                        self._uuid, self._rkt_uuid_path)
+            self._conf.run_dir, rkt_uuid_file
+        )
+        self._log.debug(
+            'rkt runtime %s uuid_path=[%s]',
+            self._uuid, self._rkt_uuid_path
+        )
         self._rkt_uuid = None
+        self._rkt_run = self._runner.repo.get(
+            'rkt', _TEMPLATES['rkt_run'],
+            uuid_path=self._rkt_uuid_path,
+        )
+        self._rkt_status = self._runner.repo.get(
+            'rkt', _TEMPLATES['rkt_status'],
+        )
 
     @classmethod
     def configure_runtime(cls):
@@ -83,13 +108,12 @@ class Rkt(ContainerRuntime):
     def start(self, target=None):
         if self.running:
             raise runner.OperationFailed('already running')
-
-        cmd = self.command_line(target)
         fs.rm_file(self._rkt_uuid_path)
-        self._runner.start(cmd)
-        self.resync()
-
-    def resync(self):
+        self._runner.start(command=self._rkt_run,
+            image = self._run_conf.image_path if target is None else target,
+            network=self._run_conf.network,
+            memsize=self._run_conf.memory_size_mib,
+        )
         self._collect_rkt_uuid(self._rkt_uuid_path)
         self._collect_rkt_pid()
 
@@ -103,24 +127,6 @@ class Rkt(ContainerRuntime):
         except OSError:
             pass  # TODO
         self._rkt_uuid = None
-
-    def command_line(self, target=None):
-        image = self._run_conf.image_path if target is None else target
-        network = (
-            'default'
-            if self._run_conf.network is None else
-            self._run_conf.network
-        )
-        cmd = [
-            Rkt._PATH.cmd,
-            '--uuid-file-save=%s' % self._rkt_uuid_path,
-            '--insecure-options=image',  # FIXME
-            '--net=%s' % network,
-            'run',
-            '%s' % image,
-            '--memory=%iM' % (self._run_conf.memory_size_mib),
-        ]
-        return cmd
 
     def runtime_name(self):
         if self._rkt_uuid is None:
@@ -148,12 +154,7 @@ class Rkt(ContainerRuntime):
                        self._uuid, self._rkt_uuid)
 
     def _collect_rkt_pid(self):
-        cmd = [
-            Rkt._PATH.cmd,
-            'status',
-            self._rkt_uuid
-        ]
-        out = self._runner.call(cmd, output=True)
+        out = self._rkt_status(rkt_uuid=self._rkt_uuid)
         # TODO: find a better solution
         data = _parse_keyval(out.decode('utf-8'))
 

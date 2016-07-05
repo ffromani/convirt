@@ -55,7 +55,6 @@ class EnvironTests(ConfigTestsMixin, testlib.TestCase):
             gid=42,
             tools_dir='/usr/local/libexec/convirt/test',
             run_dir='/run/convirt_d',
-            use_sudo=False,
             cgroup_slice='convirt_slice',
         )
         self.assertNotRaises(convirt.config.environ.setup, conf)
@@ -77,11 +76,11 @@ class EnvironTests(ConfigTestsMixin, testlib.TestCase):
 
     def test_attribute_does_not_disappear(self):
         conf = convirt.config.environ.current()
-        ref_value = conf.use_sudo
-        del conf['use_sudo']
+        ref_value = conf.cgroup_slice
+        del conf['cgroup_slice']
         convirt.config.environ.setup(conf)
         new_conf = convirt.config.environ.current()
-        self.assertEquals(new_conf.use_sudo, ref_value)
+        self.assertEquals(new_conf.cgroup_slice, ref_value)
 
 
 class NetworkTests(ConfigTestsMixin, testlib.TestCase):

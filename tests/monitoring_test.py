@@ -23,6 +23,7 @@ from __future__ import absolute_import
 import libvirt
 
 import convirt
+import convirt.command
 import convirt.config.environ
 import convirt.connection
 import convirt.events
@@ -46,15 +47,14 @@ class MonitoringTests(testlib.RunnableTestCase):
         def _cb(*args, **kwargs):
             delivered.append(args)
 
-        def _fake_get_all():
-            return []
-
-        conn = convirt.connection.Connection()
+        conn = convirt.connection.Connection(
+            convirt.command.Repo()
+        )
         with testlib.named_temp_dir() as tmp_dir:
             with testlib.global_conf(run_dir=tmp_dir):
                 dom = conn.createXML(testlib.minimal_dom_xml(), 0)
                 conn.domainEventRegisterAny(dom, evt, _cb, None)
-                convirt.monitoring.watchdog(_fake_get_all)
+                convirt.monitoring.watchdog(lambda: [])
 
         self.assertEquals(delivered, [(
             conn,
@@ -71,7 +71,9 @@ class MonitoringTests(testlib.RunnableTestCase):
         def _cb(*args, **kwargs):
             delivered.append(args)
 
-        conn = convirt.connection.Connection()
+        conn = convirt.connection.Connection(
+            convirt.command.Repo()
+        )
         with testlib.named_temp_dir() as tmp_dir:
             with testlib.global_conf(run_dir=tmp_dir):
                 dom = conn.createXML(testlib.minimal_dom_xml(), 0)

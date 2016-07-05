@@ -41,33 +41,30 @@ class Domain(object):
     _log = logging.getLogger('convirt.Domain')
 
     @classmethod
-    def create(cls, xmldesc, conf=None, runr=runner.Subproc.create):
-        cfg = conf if conf is not None else config.environ.current()
-        inst = cls(xmldesc, conf=cfg, runr=runr)
+    def create(cls, xmldesc, conf, repo):  # FIXME
+        inst = cls(xmldesc, conf=conf, repo=repo)
         inst._startup()
         doms.add(inst)
         return inst
 
     @classmethod
-    def recover(cls, rt_uuid, xmldesc, conf=None, runr=runner.Subproc.create):
-        cfg = conf if conf is not None else config.environ.current()
-        inst = cls(xmldesc, conf=cfg, runr=runr, rt_uuid=rt_uuid)
+    def recover(cls, rt_uuid, xmldesc, conf, repo):  # FIXME
+        inst = cls(xmldesc, conf=conf, repo=repo, rt_uuid=rt_uuid)
         inst._resync()
         doms.add(inst)
         return inst
 
-    def __init__(self, xmldesc,
-                 conf=None, runr=runner.Subproc.create, rt_uuid=None):
+    def __init__(self, xmldesc, conf, repo,
+                 rt_uuid=None):  # FIXME
         self._xmldesc = xmldesc
         self._root = ET.fromstring(xmldesc)
         self._vm_uuid = uuid.UUID(self._root.find('./uuid').text)
         rt_name = _find_container_type(self._root)
         self._log.debug('initializing %r container %r',
                         rt_name, self.UUIDString())
-        self._rt = runtime.create(rt_name,
-                                  conf=conf,
-                                  runr=runr,
-                                  rt_uuid=rt_uuid)
+        self._rt = runtime.create(
+            rt_name, conf=conf, repo=repo, rt_uuid=rt_uuid
+        )
         self._xml_file = xmlfile.XMLFile(self._rt.uuid, conf)
         self._log.debug('initializing container %r runtime %r',
                         self.UUIDString(), self._rt.uuid)

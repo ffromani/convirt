@@ -19,55 +19,41 @@
 #
 from __future__ import absolute_import
 
-import json
 import logging
-import os
-import os.path
-import time
 
 from .. import command
 from .. import runner
 from . import ContainerRuntime
 
 
-docker = command.Path('docker')
+class Fake(ContainerRuntime):
 
+    _log = logging.getLogger('convirt.runtime.Fake')
 
-command.executables['docker'] = docker
+    NAME = 'fake'
 
-
-_TEMPLATES = {
-    'docker_run':
-        'run '
-        '--name=${unit_name} '
-        '${image}',
-
-}
-
-
-class Docker(ContainerRuntime):
-
-    _log = logging.getLogger('convirt.runtime.Docker')
-
-    NAME = 'docker'
-
-    _PREFIX = 'dkr-'
+    _PREFIX = 'fake-'
 
     def __init__(self,
                  conf,
                  repo,
                  rt_uuid=None):
-        super(Docker, self).__init__(conf, repo, rt_uuid)
-        self._log.debug('docker runtime %s', self._uuid)
+        super(Fake, self).__init__(conf, repo, rt_uuid)
+        self._log.debug('fake runtime %s', self._uuid)
         self._running = False
-        self._docker_run = self._runner.repo.get(
-            'docker', _TEMPLATES['docker_run'],
-            unit_name=self.unit_name(),
-        )
+        self._actions = {
+            'start': 0,
+            'stop': 0,
+            'resync': 0,
+        }
+
+    @property
+    def actions(self):
+        return self._actions.copy()
 
     @staticmethod
     def available():
-        return docker.available
+        return True
 
     @classmethod
     def configure_runtime(cls):
@@ -75,19 +61,21 @@ class Docker(ContainerRuntime):
 
     @property
     def running(self):
-        return self._runner.running
+        return self._running
 
     def start(self, target=None):
         if self.running:
             raise runner.OperationFailed('already running')
 
-        self._runner.start(
-            command=self._docker_run,
-            image = self._run_conf.image_path if target is None else target,
-        )
+        self._actions['start'] += 1
+        self._running = True
 
     def stop(self):
         if not self.running:
             raise runner.OperationFailed('not running')
 
-        self._runner.stop()
+        self._actions['stop'] += 1
+        self._running = False
+
+    def resync(self):
+        self._actions['resync'] += 1

@@ -20,6 +20,7 @@ from __future__ import absolute_import
 #
 
 from contextlib import contextmanager
+import collections
 import os
 import os.path
 import shutil
@@ -81,7 +82,6 @@ def named_temp_dir(base=TEMPDIR):
 
 def make_conf(**kwargs):
     conf = convirt.config.environ.current()
-    conf.use_sudo = False  # hack for convenience
     for k, v in list(kwargs.items()):
         setattr(conf, k, v)
     return conf
@@ -98,25 +98,24 @@ def global_conf(**kwargs):
     finally:
         convirt.config.environ.setup(saved_conf)
 
+def fake_executables():
+    paths = ['.', './tests']
+    return {
+       'systemctl': convirt.command.Path('fake-systemctl', paths=paths),
+       'machinectl': convirt.command.Path('true'),
+       'docker': convirt.command.Path('fake-docker', paths=paths),
+       'rkt': convirt.command.Path('fake-rkt', paths=paths),
+       'systemd-run': convirt.command.Path('fake-systemd-run', paths=paths),
+    }
 
 class RunnableTestCase(TestCase):
 
     def setUp(self):
         self.guid = uuid.uuid4()
         self.run_dir = tempfile.mkdtemp()
-        paths = ['.', './tests']
-        fake_sysctl = convirt.command.Path('fake-systemctl', paths=paths)
-        fake_mctl = convirt.command.Path('true')
-        fake_dkr = convirt.command.Path('fake-docker', paths=paths)
-        fake_rkt = convirt.command.Path('fake-rkt', paths=paths)
-        fake_sdrun = convirt.command.Path('fake-systemd-run', paths=paths)
         self.patch = monkey.Patch([
-            (convirt.runtimes.docker.Docker, '_PATH', fake_dkr),
             (convirt.runtimes.rkt.Network, 'DIR', self.run_dir),
-            (convirt.runtimes.rkt.Rkt, '_PATH', fake_rkt),
-            (convirt.command, 'machinectl', fake_mctl),
-            (convirt.command, 'systemctl', fake_sysctl),
-            (convirt.command, 'systemd_run', fake_sdrun),
+            (convirt.command, 'executables', fake_executables()),
         ])
         self.patch.apply()
         convirt.runtime.clear()
@@ -148,20 +147,25 @@ class CgroupTestCase(TestCase):
 class FakeRunnableTestCase(TestCase):
 
     def setUp(self):
-        self.runners = []
-
-        def _fake_create(*args, **kwargs):
-            rt = FakeRunner()
-            self.runners.append(rt)
-            return rt
-
-        with monkey.patch_scope(
-            [(convirt.runtime, 'create', _fake_create)]
-        ):
-            self.dom = convirt.domain.Domain(
-                minimal_dom_xml(),
-                convirt.config.environ.current()
+        def _fake_create(rt, conf, repo, **kwargs):
+            return convirt.runtimes.fake.Fake(
+                conf,
+                repo,
+                **kwargs
             )
+
+        self.patch = monkey.Patch([
+            (convirt.runtime, 'create', _fake_create),
+        ])
+        self.patch.apply()
+        self.dom = convirt.domain.Domain(
+            minimal_dom_xml(),
+            convirt.config.environ.current(),
+            FakeRepo()
+        )
+
+    def tearDown(self):
+        self.patch.revert()
 
 
 class FakeRunner(object):
@@ -238,3 +242,10 @@ def _read_dom_xml(name):
     tmpl = os.path.join(testdir, 'data', name)
     with open(tmpl, 'rt') as src:
         return src.read()
+
+
+class FakeRepo(convirt.command.Repo):
+
+    def __init__(self):
+        super(FakeRepo, self).__init__(execs=fake_executables())
+        self._cmds = collections.defaultdict(lambda: convirt.command.FakeCommand)

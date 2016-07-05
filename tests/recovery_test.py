@@ -34,6 +34,28 @@ from . import monkey
 from . import testlib
 
 
+class FakeSystemctlList(object):
+
+    def __init__(self, vm_uuids):
+        self.uuids = vm_uuids
+
+    def __call__(self, *args, **kwargs):
+        output = '\n'.join(
+            'convirt-%s.service   loaded  active  running useless' % vm_uuid
+            for vm_uuid in self.uuids
+        )
+        return output
+
+
+class FakeRepo(object):
+
+    def __init__(self, vm_uuids):
+        self.uuids = vm_uuids
+
+    def get(self, *args, **kwargs):
+        return FakeSystemctlList(self.uuids)
+
+
 class RecoveryTests(testlib.FakeRunnableTestCase):
 
     def setUp(self):
@@ -41,30 +63,24 @@ class RecoveryTests(testlib.FakeRunnableTestCase):
         convirt.doms.clear()
 
     def tearDown(self):
+        super(RecoveryTests, self).tearDown()
         convirt.doms.clear()
 
     def test_recoverAllDomains(self):
         vm_uuid = str(uuid.uuid4())
 
-        class FakeRunner(object):
-            @classmethod
-            def get_all(cls):
-                yield vm_uuid
-
-        def _fake_create(*args, **kwargs):
-            return testlib.FakeRunner()
-
         with testlib.named_temp_dir() as tmp_dir:
             with testlib.global_conf(run_dir=tmp_dir):
-                xf = convirt.xmlfile.XMLFile(vm_uuid,
-                                             convirt.config.environ.current())
+                xf = convirt.xmlfile.XMLFile(
+                    vm_uuid,
+                    convirt.config.environ.current(),
+                )
                 save_xml(xf, testlib.minimal_dom_xml(vm_uuid=vm_uuid))
-                with monkey.patch_scope([
-                    (convirt.runtime, 'create', _fake_create),
-                ]):
-                    recovered_doms = convirt.recoveryAllDomains(FakeRunner)
-                    self.assertEquals(len(recovered_doms), 1)
-                    self.assertEquals(recovered_doms[0].UUIDString(), vm_uuid)
+                recovered_doms = convirt.recoveryAllDomains(
+                    FakeRepo((vm_uuid,)),
+                )
+                self.assertEquals(len(recovered_doms), 1)
+                self.assertEquals(recovered_doms[0].UUIDString(), vm_uuid)
 
     def test_recoverAllDomains_with_exceptions(self):
         vm_uuids = [
@@ -72,15 +88,6 @@ class RecoveryTests(testlib.FakeRunnableTestCase):
             str(uuid.uuid4()),
             str(uuid.uuid4()),
         ]
-
-        class FakeRunner(object):
-            @classmethod
-            def get_all(cls):
-                # mismatch UUID
-                return [str(uuid.uuid4())] + vm_uuids[1:]
-
-        def _fake_create(*args, **kwargs):
-            return testlib.FakeRunner()
 
         with testlib.named_temp_dir() as tmp_dir:
             with testlib.global_conf(run_dir=tmp_dir):
@@ -90,15 +97,14 @@ class RecoveryTests(testlib.FakeRunnableTestCase):
                         convirt.config.environ.current())
                     save_xml(xf, testlib.minimal_dom_xml(vm_uuid=vm_uuid))
 
-                with monkey.patch_scope([
-                    (convirt.runtime, 'create', _fake_create),
-                ]):
-                    recovered_doms = convirt.recoveryAllDomains(FakeRunner)
-                    recovered_uuids = set(vm_uuids[1:])
-                    self.assertEquals(len(recovered_doms),
-                                      len(recovered_uuids))
-                    for dom in recovered_doms:
-                        self.assertIn(dom.UUIDString(), recovered_uuids)
+                recovered_doms = convirt.recoveryAllDomains(
+                    FakeRepo([str(uuid.uuid4())] + vm_uuids[1:]),
+                )
+                recovered_uuids = set(vm_uuids[1:])
+                self.assertEquals(len(recovered_doms),
+                                  len(recovered_uuids))
+                for dom in recovered_doms:
+                    self.assertIn(dom.UUIDString(), recovered_uuids)
 
 
 def save_xml(xf, xml_str):

@@ -24,6 +24,7 @@ import time
 import xml.etree.ElementTree as ET
 
 import convirt
+import convirt.command
 import convirt.config
 import convirt.config.environ
 import convirt.runner
@@ -36,15 +37,24 @@ from . import testlib
 class RktTests(testlib.RunnableTestCase):
 
     def test_created_not_running(self):
-        rkt = rts.rkt.Rkt(convirt.config.environ.current())
+        rkt = rts.rkt.Rkt(
+            convirt.config.environ.current(),
+            convirt.command.Repo()
+        )
         self.assertFalse(rkt.running)
 
     def test_runtime_name_none_before_start(self):
-        rkt = rts.rkt.Rkt(convirt.config.environ.current())
+        rkt = rts.rkt.Rkt(
+            convirt.config.environ.current(),
+            convirt.command.Repo()
+        )
         self.assertEqual(rkt.runtime_name(), None)
 
     def test_start_stop(self):
-        rkt = rts.rkt.Rkt(testlib.make_conf(run_dir=self.run_dir))
+        rkt = rts.rkt.Rkt(
+            testlib.make_conf(run_dir=self.run_dir),
+            convirt.command.Repo()
+        )
         root = ET.fromstring(testlib.minimal_dom_xml())
         rkt.configure(root)
         rkt.start()
@@ -55,7 +65,10 @@ class RktTests(testlib.RunnableTestCase):
             self.assertFalse(rkt.running)
 
     def test_start_twice(self):
-        rkt = rts.rkt.Rkt(testlib.make_conf(run_dir=self.run_dir))
+        rkt = rts.rkt.Rkt(
+            testlib.make_conf(run_dir=self.run_dir),
+            convirt.command.Repo()
+        )
         root = ET.fromstring(testlib.minimal_dom_xml())
         rkt.configure(root)
         rkt.start()
@@ -68,16 +81,12 @@ class RktTests(testlib.RunnableTestCase):
             rkt.stop()
 
     def test_stop_not_started(self):
-        rkt = rts.rkt.Rkt(testlib.make_conf(run_dir=self.run_dir))
+        rkt = rts.rkt.Rkt(
+            testlib.make_conf(run_dir=self.run_dir),
+            convirt.command.Repo()
+        )
         self.assertFalse(rkt.running)
         self.assertRaises(convirt.runner.OperationFailed, rkt.stop)
-
-    def test_commandline_unquoted(self):
-        rkt = rts.rkt.Rkt(testlib.make_conf(run_dir=self.run_dir))
-        root = ET.fromstring(testlib.minimal_dom_xml())
-        rkt.configure(root)
-        for arg in rkt.command_line():
-            self.assertNotIn('"', arg)
 
     def test_read_uuid_fails(self):
 
@@ -88,11 +97,16 @@ class RktTests(testlib.RunnableTestCase):
             (time, 'sleep', lambda _: None),
         ]):
             rkt = rts.rkt.Rkt(testlib.make_conf(run_dir=self.run_dir),
+                              convirt.command.Repo(),
                               read_file=_fail_read)
-            self.assertRaises(convirt.runner.OperationFailed, rkt.resync)
+            root = ET.fromstring(testlib.minimal_dom_xml())
+            rkt.configure(root)
+            self.assertRaises(convirt.runner.OperationFailed,
+                              rkt.start)
 
     def test_resync(self):
-        rkt = rts.rkt.Rkt(testlib.make_conf(run_dir=self.run_dir))
+        rkt = rts.rkt.Rkt(testlib.make_conf(run_dir=self.run_dir),
+                          convirt.command.Repo())
         root = ET.fromstring(testlib.minimal_dom_xml())
         rkt.configure(root)
         rkt.start()

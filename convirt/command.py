@@ -19,6 +19,7 @@
 #
 from __future__ import absolute_import
 
+import collections
 import logging
 import os
 import os.path
@@ -46,6 +47,10 @@ class Path(object):
         if self._paths is None:
             self._paths = self._find_paths()
         return self._paths
+
+    @property
+    def available(self):
+        return self.cmd is not None
 
     @property
     def cmd(self):
@@ -76,17 +81,12 @@ class Path(object):
         return None
 
 
-systemctl = Path('systemctl')
-systemd_run = Path('systemd-run')
-machinectl = Path('machinectl')
-
-
 # TODO document the purpose
-executables = [
-    systemctl,
-    systemd_run,
-    machinectl,
-]
+executables = {
+    'machinectl': Path('machinectl'),
+    'systemctl': Path('systemctl'),
+    'systemd-run': Path('systemd-run'),
+}
 
 
 class Failed(Exception):
@@ -106,9 +106,8 @@ class Command(object):
     _log = logging.getLogger('command')
 
     @classmethod
-    def from_name(cls, name, template):
-        obj = cls(Path(name), template)
-        return obj
+    def from_name(cls, name, template, **kwargs):
+        return cls(Path(name), template, **kwargs)
 
     def __init__(self, path, template, **kwargs):
         self.ident = '*'
@@ -148,8 +147,18 @@ class Command(object):
 
 
 class FakeCommand(Command):
+
+    def __init__(self, path, template, **kwargs):
+        super(FakeCommand, self).__init__(path, template, **kwargs)
+        self._executions = []
+
+    @property
+    def executions(self):
+        return self._executions
+
     def _execute(self, argv):
         self._log.info('faking call: %r', argv)
+        self._executions.append(argv)
         return ' '.join(argv)
 
 
@@ -158,9 +167,38 @@ class SubProcCommand(Command):
         self._log.debug('%s calling %r',
                         self.ident, argv)
         try:
-            return subprocess.check_output(cmd)
+            return subprocess.check_output(argv)
         except subprocess.CalledProcessError as exc:
             raise Failed(str(exc))
         finally:
-            log.debug('%s called %r',
-                      self.ident, argv)
+            self._log.debug('%s called %r',
+                            self.ident, argv)
+
+
+
+class Repo(object):
+
+    def __init__(self, cmds=None, execs=None):
+        self._cmds = collections.defaultdict(lambda: SubProcCommand)
+        if cmds is not None:
+            self.update(cmds)
+        self._execs = {
+            name: path for name, path in executables.items()
+        }
+        if execs is not None:
+            self._execs.update(execs)
+
+    def __nonzero__(self):
+        return bool(self._cmds)
+
+    def __repr__(self):
+        return repr(self._cmds)
+
+    def update(self, cmds):
+        self._cmds.update(cmds)
+
+    def get(self, name, template, **kwargs):
+        cls = self._cmds[name]
+        path = self._execs[name]
+        # TODO: KeyError?
+        return cls(path, template, **kwargs)

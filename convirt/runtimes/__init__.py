@@ -51,22 +51,15 @@ class ContainerRuntime(object):
 
     _PATH = _NULL
 
-    @classmethod
-    def available(cls):
-        return cls._PATH.cmd is not None
-
-    def __init__(self,
-                 conf,
-                 runr=runner.Subproc.create,
-                 rt_uuid=None):
+    def __init__(self, conf, repo, rt_uuid=None):
         self._conf = conf
         self._uuid = (
             uuid.uuid4() if rt_uuid is None else
             uuid.UUID(rt_uuid)
         )
-        self._run_conf = None
-        self._runner = runr(self.unit_name())
+        self._runner = runner.Runner(self.unit_name(), repo)
         self._runner.configure(self._conf)
+        self._run_conf = None
         self._pid = 0
 
     @property
@@ -92,9 +85,6 @@ class ContainerRuntime(object):
                         self.uuid, self._run_conf)
 
     def start(self, target=None):
-        raise NotImplementedError
-
-    def resync(self):
         raise NotImplementedError
 
     def stop(self):
