@@ -29,8 +29,6 @@ import convirt.doms
 import convirt.runner
 import convirt.xmlfile
 
-
-from . import monkey
 from . import testlib
 
 

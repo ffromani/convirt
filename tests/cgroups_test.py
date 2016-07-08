@@ -21,7 +21,6 @@ from __future__ import absolute_import
 
 import convirt.metrics.cgroups
 
-from . import monkey
 from . import testlib
 
 
@@ -30,11 +29,11 @@ class CgroupTests(testlib.CgroupTestCase):
     def test_empty_cgroups(self):
         mon = convirt.metrics.cgroups.Monitorable(self.pid)
         self.assertEquals(mon.cgroups, ())
-    
+
     def test_empty_cpuacct(self):
         mon = convirt.metrics.cgroups.Monitorable(self.pid)
         self.assertIs(mon.cpuacct, None)
-    
+
     def test_empty_memory(self):
         mon = convirt.metrics.cgroups.Monitorable(self.pid)
         self.assertIs(mon.memory, None)
@@ -50,7 +49,7 @@ class CgroupTests(testlib.CgroupTestCase):
     def test_pid_matches(self):
         mon = convirt.metrics.cgroups.Monitorable(self.pid)
         self.assertEquals(mon.pid, self.pid)
-    
+
     def test_setup(self):
         mon = convirt.metrics.cgroups.Monitorable(self.pid)
         mon.setup()
@@ -62,7 +61,7 @@ class CgroupTests(testlib.CgroupTestCase):
         for cg in ('memory', 'cpuacct', 'blkio'):
             self.assertIn(cg, mon.cgroups)
 
-    def test_update_without_setup(self):        
+    def test_update_without_setup(self):
         mon = convirt.metrics.cgroups.Monitorable(self.pid)
         mon.update()
         self.assertEquals(mon.cgroups, ())

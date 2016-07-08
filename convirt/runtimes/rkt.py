@@ -25,7 +25,6 @@ import os
 import os.path
 import time
 
-from ..config import environ
 from ..config import network
 from .. import command
 from .. import fs
@@ -53,7 +52,6 @@ _TEMPLATES = {
         'status '
         '${rkt_uuid}',
 }
-
 
 
 class Rkt(ContainerRuntime):
@@ -109,8 +107,9 @@ class Rkt(ContainerRuntime):
         if self.running:
             raise runner.OperationFailed('already running')
         fs.rm_file(self._rkt_uuid_path)
-        self._runner.start(command=self._rkt_run,
-            image = self._run_conf.image_path if target is None else target,
+        self._runner.start(
+            command=self._rkt_run,
+            image=self._run_conf.image_path if target is None else target,
             network=self._run_conf.network,
             memsize=self._run_conf.memory_size_mib,
         )

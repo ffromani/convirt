@@ -175,7 +175,6 @@ class SubProcCommand(Command):
                             self.ident, argv)
 
 
-
 class Repo(object):
 
     def __init__(self, cmds=None, execs=None):

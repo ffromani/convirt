@@ -29,7 +29,6 @@ import convirt.config.environ
 import convirt.runtime
 import convirt.runtimes
 
-from . import monkey
 from . import testlib
 
 

@@ -23,13 +23,11 @@ import uuid
 
 import libvirt
 
-from . import command
 from . import config
 from . import domain
 from . import doms
 from . import errors
 from . import events
-from . import runner
 
 
 class Connection(object):

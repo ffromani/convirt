@@ -98,24 +98,25 @@ class CommandTests(testlib.RunnableTestCase):
             convirt.command.executables['systemd-run'],
             '${machinectl} poweroff ${uuid}')
         vmid = str(uuid.uuid4())
-        self.assertEquals(sdrun.cmdline(
-                machinectl=convirt.command.executables['machinectl'].cmd,
-                uuid=vmid), [
+        built = sdrun.cmdline(
+            machinectl=convirt.command.executables['machinectl'].cmd,
+            uuid=vmid
+        )
+        expected = [
             convirt.command.executables['systemd-run'].cmd,
             convirt.command.executables['machinectl'].cmd,
             'poweroff',
             vmid
-        ])
+        ]
+        self.assertEquals(built, expected)
 
     def test_call(self):
-        echo = convirt.command.Path('echo')
         cmd = convirt.command.Command.from_name('echo', '${message}')
         self.assertRaises(NotImplementedError,
                           cmd,
                           message='test')
 
     def test_not_allowed(self):
-        echo = convirt.command.Path('echo')
         cmd = convirt.command.Command.from_name('echo', '${message}')
         cmd.allowed = lambda *args: False
         self.assertRaises(convirt.command.NotAllowed,
@@ -123,7 +124,6 @@ class CommandTests(testlib.RunnableTestCase):
                           message='test')
 
 
- 
 class FakeCommandTests(testlib.RunnableTestCase):
 
     def test_call(self):
@@ -134,7 +134,7 @@ class FakeCommandTests(testlib.RunnableTestCase):
 
 
 class RepoTests(testlib.RunnableTestCase):
-   
+
     def test_get_unknown_executable(self):
         rp = convirt.command.Repo()
         self.assertRaises(KeyError,
@@ -146,4 +146,3 @@ class RepoTests(testlib.RunnableTestCase):
         rp = convirt.command.Repo()
         cmd = rp.get('machinectl', 'poweroff ${vmname}')
         self.assertTrue(isinstance(cmd, convirt.command.Command))
-

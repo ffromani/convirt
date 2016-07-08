@@ -30,7 +30,6 @@ import convirt.events
 import convirt.monitoring
 import convirt.runner
 
-from . import monkey
 from . import testlib
 
 
@@ -56,12 +55,14 @@ class APITests(testlib.RunnableTestCase):
                 conn.domainEventRegisterAny(dom, evt, _cb, None)
                 convirt.monitorAllDomains(repo)
 
-        self.assertEquals(delivered, [(
-                            conn,
-                            dom,
-                            libvirt.VIR_DOMAIN_EVENT_STOPPED,
-                            libvirt.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN),
-                        ])
+        expected = [(
+            conn,
+            dom,
+            libvirt.VIR_DOMAIN_EVENT_STOPPED,
+            libvirt.VIR_DOMAIN_EVENT_STOPPED_SHUTDOWN
+        ), ]
+
+        self.assertEquals(delivered, expected)
 
 
 def _handler(*args, **kwargs):

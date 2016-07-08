@@ -19,11 +19,7 @@
 #
 from __future__ import absolute_import
 
-import json
 import logging
-import os
-import os.path
-import time
 
 from .. import command
 from .. import runner
@@ -83,7 +79,7 @@ class Docker(ContainerRuntime):
 
         self._runner.start(
             command=self._docker_run,
-            image = self._run_conf.image_path if target is None else target,
+            image=self._run_conf.image_path if target is None else target,
         )
 
     def stop(self):

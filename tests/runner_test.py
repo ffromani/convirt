@@ -130,7 +130,7 @@ class RunnerTests(testlib.TestCase):
         # 1. systemd-run
         # 2. --unit
         # 3. exec path
-        cmd =  runr._systemd_run.executions[0]  # FIXME
+        cmd = runr._systemd_run.executions[0]  # FIXME
         self.assertGreaterEqual(len(cmd), 3)
         self.assertIn('systemd-run', cmd[0])
         unit_found = any(
@@ -147,7 +147,7 @@ class RunnerTests(testlib.TestCase):
         )
         runr.stop()
 
-        cmd =  runr._systemctl_stop.executions[0]  # FIXME
+        cmd = runr._systemctl_stop.executions[0]  # FIXME
         # exactly:
         # 1. systemdctl
         # 2. stop

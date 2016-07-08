@@ -20,7 +20,6 @@
 from __future__ import absolute_import
 
 from collections import namedtuple
-import sys
 
 # cgroups is linux-specific, hence we gain little from os.path
 
@@ -55,7 +54,7 @@ class Reader(object):
 class Memory(Reader):
 
     Stats = namedtuple('Stats', ('rss', 'swap'))
-    
+
     def update(self):
         data = _read_keyvalue(self._path + '/memory.stat')
         return Memory.Stats(
@@ -101,7 +100,7 @@ class Monitorable(object):
         self._cgroups = ()
         self._info = {}
         self._readers = {}
-    
+
     @classmethod
     def from_pid(cls, pid):
         obj = cls(pid)
@@ -130,7 +129,7 @@ class Monitorable(object):
                     readers[rname] = inst
                     cgroups.append(inst.name)
         self._cgroups = tuple(cgroups)
-        self._readers = readers 
+        self._readers = readers
 
     def update(self):
         self._info = {
@@ -157,7 +156,6 @@ class Monitorable(object):
     @property
     def pid(self):
         return self._pid
-
 
 
 def _readfile(path):

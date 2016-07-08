@@ -19,8 +19,6 @@
 #
 from __future__ import absolute_import
 
-import os.path
-import time
 import xml.etree.ElementTree as ET
 
 import convirt
@@ -30,7 +28,6 @@ import convirt.command
 import convirt.runner
 import convirt.runtimes as rts
 
-from . import monkey
 from . import testlib
 
 

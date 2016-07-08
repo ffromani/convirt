@@ -26,7 +26,6 @@ import xml.etree.ElementTree as ET
 import libvirt
 
 
-from . import config
 from . import errors
 from . import events
 from . import doms
@@ -120,7 +119,7 @@ class Domain(object):
 
     def info(self):
         # TODO: check all but the first value
-        return [libvirt.VIR_DOMAIN_RUNNING, 0, 0, 1, 0] 
+        return [libvirt.VIR_DOMAIN_RUNNING, 0, 0, 1, 0]
 
     def vcpus(self):
         # TODO: does this count as hack?

@@ -22,7 +22,6 @@ from __future__ import absolute_import
 import logging
 import os
 import os.path
-import subprocess
 
 from . import command
 from . import config
@@ -39,8 +38,6 @@ _TEMPLATES = {
         '--property=CPUAccounting=1 '
         '--property=MemoryAccounting=1 '
         '--property=BlockIOAccounting=1 '
-#        '--uid=${uid} '
-#        '--gid=${gid} '
         '${command}',
 
     'machinectl_poweroff':

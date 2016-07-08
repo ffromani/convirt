@@ -30,7 +30,6 @@ import convirt.events
 import convirt.monitoring
 import convirt.runner
 
-from . import monkey
 from . import testlib
 
 

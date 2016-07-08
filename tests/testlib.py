@@ -98,15 +98,17 @@ def global_conf(**kwargs):
     finally:
         convirt.config.environ.setup(saved_conf)
 
+
 def fake_executables():
     paths = ['.', './tests']
     return {
-       'systemctl': convirt.command.Path('fake-systemctl', paths=paths),
-       'machinectl': convirt.command.Path('true'),
-       'docker': convirt.command.Path('fake-docker', paths=paths),
-       'rkt': convirt.command.Path('fake-rkt', paths=paths),
-       'systemd-run': convirt.command.Path('fake-systemd-run', paths=paths),
+        'systemctl': convirt.command.Path('fake-systemctl', paths=paths),
+        'machinectl': convirt.command.Path('true'),
+        'docker': convirt.command.Path('fake-docker', paths=paths),
+        'rkt': convirt.command.Path('fake-rkt', paths=paths),
+        'systemd-run': convirt.command.Path('fake-systemd-run', paths=paths),
     }
+
 
 class RunnableTestCase(TestCase):
 
@@ -248,4 +250,6 @@ class FakeRepo(convirt.command.Repo):
 
     def __init__(self):
         super(FakeRepo, self).__init__(execs=fake_executables())
-        self._cmds = collections.defaultdict(lambda: convirt.command.FakeCommand)
+        self._cmds = collections.defaultdict(
+            lambda: convirt.command.FakeCommand
+        )
