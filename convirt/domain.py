@@ -33,6 +33,7 @@ from . import runner
 from . import runtime
 from . import runtimes
 from . import xmlfile
+from . import xmlconstants
 
 
 class Domain(object):
@@ -161,7 +162,7 @@ class Domain(object):
 
 def _find_container_type(root):
     cont = root.find(
-        './metadata/{%s}container' % xmlfile.CONVIRT_URI
+        './metadata/{%s}container' % xmlconstants.METADATA_CONTAINERS_URI
     )
     if cont is None:
         raise runtimes.ConfigError('missing container type')

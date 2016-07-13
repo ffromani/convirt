@@ -45,7 +45,7 @@ class DomainIdsTests(testlib.RunnableTestCase):
             <maxMemory>0</maxMemory>
             <metadata>
               <convirt:container
-                xmlns:convirt="http://github.com/mojaves/convirt/1.0">
+                xmlns:convirt="http://github.com/ovirt/containers/1.0">
               rkt</convirt:container>
               <ovirt:qos/>
             </metadata>

@@ -7,7 +7,7 @@
         <maxMemory slots="16">4294967296</maxMemory>
 	<vcpu current="2">16</vcpu>
   <metadata>
-    <convirt:container xmlns:convirt="http://github.com/mojaves/convirt/1.0">rkt</convirt:container>
+    <convirt:container xmlns:convirt="http://github.com/ovirt/containers/1.0">rkt</convirt:container>
                 <ovirt:qos/>
   </metadata>
   <devices>

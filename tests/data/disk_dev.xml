@@ -1,6 +1,6 @@
 <domain type='kvm' id='2'>
   <metadata>
-    <convirt:container xmlns:convirt="http://github.com/mojaves/convirt/1.0">rkt</convirt:container>
+    <convirt:container xmlns:convirt="http://github.com/ovirt/containers/1.0">rkt</convirt:container>
   </metadata>
   <devices>
     <emulator>kvm</emulator>

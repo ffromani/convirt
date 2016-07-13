@@ -1,9 +1,9 @@
 <domain type='kvm' id='2'>
   <metadata>
-    <convirt:drivemap xmlns:convirt="http://github.com/mojaves/convirt/drivemap/1.0">
+    <convirt:drivemap xmlns:convirt="http://github.com/ovirt/containers/drivemap/1.0">
       <volume name="data" drive="vda"/>
     </convirt:drivemap>
-    <convirt:container xmlns:convirt="http://github.com/mojaves/convirt/1.0">rkt</convirt:container>
+    <convirt:container xmlns:convirt="http://github.com/ovirt/containers/1.0">rkt</convirt:container>
   </metadata>
   <memory>4194304</memory>
   <currentMemory>4194304</currentMemory>

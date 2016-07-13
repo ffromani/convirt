@@ -33,6 +33,10 @@ from . import errors
 from . import monitoring
 from . import runner
 
+# FIXME
+from . import xmlconstants as XML
+# make pyflakes happy
+XML
 
 _log = logging.getLogger('convirt')
 

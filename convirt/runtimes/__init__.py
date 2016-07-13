@@ -25,7 +25,7 @@ import uuid
 
 from .. import command
 from .. import runner
-from .. import xmlfile
+from .. import xmlconstants
 
 
 # TODO: networking
@@ -167,7 +167,9 @@ class DomainParser(object):
     def drives_map(self):
         mapping = {}
         entries = self._xml_tree.findall(
-            './metadata/{%s}drivemap/volume' % xmlfile.CONVIRT_DRIVEMAP_URI,
+            './metadata/{%s}drivemap/volume' % (
+                xmlconstants.METADATA_VM_DRIVE_MAP_URI
+            ),
         )
         for entry in entries:
             name = entry.get('name')
@@ -203,7 +205,7 @@ class DomainParser(object):
 
     def _override_image(self):
         cont = self._xml_tree.find(
-            './metadata/{%s}container' % xmlfile.CONVIRT_URI
+            './metadata/{%s}container' % xmlconstants.METADATA_CONTAINERS_URI
         )
         if cont is None:
             return None

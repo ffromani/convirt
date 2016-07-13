@@ -4,7 +4,7 @@
   <uuid>{vm_uuid}</uuid>
   <maxMemory>16384</maxMemory>
   <metadata>
-    <convirt:container xmlns:convirt="http://github.com/mojaves/convirt/1.0">rkt</convirt:container>
+    <convirt:container xmlns:convirt="http://github.com/ovirt/containers/1.0">rkt</convirt:container>
   </metadata>
   <devices>
     <emulator>rkt</emulator>
