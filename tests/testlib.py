@@ -100,13 +100,13 @@ def global_conf(**kwargs):
 
 
 def fake_executables():
-    paths = ['.', './tests']
+    paths = ['.', './tests', './fake/bin', './tests/fake/bin']
     return {
-        'systemctl': convirt.command.Path('fake-systemctl', paths=paths),
         'machinectl': convirt.command.Path('true'),
-        'docker': convirt.command.Path('fake-docker', paths=paths),
-        'rkt': convirt.command.Path('fake-rkt', paths=paths),
-        'systemd-run': convirt.command.Path('fake-systemd-run', paths=paths),
+        'systemctl': convirt.command.Path('systemctl', paths=paths),
+        'docker': convirt.command.Path('docker', paths=paths),
+        'rkt': convirt.command.Path('rkt', paths=paths),
+        'systemd-run': convirt.command.Path('systemd-run', paths=paths),
     }
 
 
