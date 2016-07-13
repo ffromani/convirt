@@ -21,9 +21,11 @@ from __future__ import absolute_import
 
 from contextlib import contextmanager
 import collections
+import gzip
 import os
 import os.path
 import shutil
+import tarfile
 import tempfile
 import uuid
 import unittest
@@ -128,22 +130,46 @@ class RunnableTestCase(TestCase):
         shutil.rmtree(self.run_dir)
 
 
+@contextmanager
+def move_into(path):
+    oldpath = os.getcwd()
+    try:
+        os.chdir(path)
+        yield
+    finally:
+        os.chdir(oldpath)
+
+
 class CgroupTestCase(TestCase):
 
     def setUp(self):
         self.pid = 0
         testdir = os.path.dirname(os.path.abspath(__file__))
         self.root = os.path.join(testdir, 'fake')
+
+        self.procfsroot = os.path.join(
+            self.root, convirt.metrics.cgroups.PROCFS
+        )
+        self.cgroupfsroot = os.path.join(
+            self.root, convirt.metrics.cgroups.CGROUPFS
+        )
+
+        with move_into(self.root):
+            cgroupsdata = os.path.join(self.root, 'cgroups.tgz')
+            with gzip.GzipFile(cgroupsdata) as gz:
+                tar = tarfile.TarFile(fileobj=gz)
+                tar.extractall()
+
         self.patch = monkey.Patch([
-            (convirt.metrics.cgroups, '_PROCBASE',
-             self.root + '/' + convirt.metrics.cgroups.PROCFS),
-            (convirt.metrics.cgroups, '_CGROUPBASE',
-             self.root + '/' + convirt.metrics.cgroups.CGROUPFS),
+            (convirt.metrics.cgroups, '_PROCBASE', self.procfsroot),
+            (convirt.metrics.cgroups, '_CGROUPBASE', self.cgroupfsroot),
         ])
         self.patch.apply()
 
     def tearDown(self):
         self.patch.revert()
+        shutil.rmtree(self.procfsroot)
+        shutil.rmtree(self.cgroupfsroot)
 
 
 class FakeRunnableTestCase(TestCase):
