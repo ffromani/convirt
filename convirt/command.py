@@ -177,8 +177,8 @@ class SubProcCommand(Command):
 
 class Repo(object):
 
-    def __init__(self, cmds=None, execs=None):
-        self._cmds = collections.defaultdict(lambda: SubProcCommand)
+    def __init__(self, cmds=None, execs=None, default=SubProcCommand):
+        self._cmds = collections.defaultdict(lambda: default)
         if cmds is not None:
             self.update(cmds)
         self._execs = {
