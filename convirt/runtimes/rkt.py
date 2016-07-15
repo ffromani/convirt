@@ -23,14 +23,12 @@ import json
 import logging
 import os
 import os.path
-import time
 
 from ..config import network
 from .. import command
 from .. import fs
 from .. import runner
-from . import ContainerRuntime
-from six.moves import range
+from . import ContainerRuntime, NotYetReady
 
 
 rkt = command.Path('rkt')
@@ -63,10 +61,6 @@ class Rkt(ContainerRuntime):
     _PREFIX = 'rkt-'
 
     _RKT_UUID_FILE = 'rkt_uuid'
-
-    _TRIES = 10  # TODO: make config item?
-
-    _DELAY = 1  # seconds  TODO: make config item?
 
     @staticmethod
     def available():
@@ -113,8 +107,12 @@ class Rkt(ContainerRuntime):
             network=self._run_conf.network,
             memsize=self._run_conf.memory_size_mib,
         )
-        self._collect_rkt_uuid(self._rkt_uuid_path)
-        self._collect_rkt_pid()
+        self._retry(
+            'read rkt UUID', self._read_rkt_uuid, self._rkt_uuid_path
+        )
+        self._retry(
+            'fetch rkt state', self._fetch_rkt_state
+        )
 
     def stop(self):
         if not self.running:
@@ -132,36 +130,27 @@ class Rkt(ContainerRuntime):
             return None
         return '%s%s' % (self._PREFIX, self._rkt_uuid)
 
-    def _collect_rkt_uuid(self, path):
-        for i in range(self._TRIES):
-            try:
-                self._read_rkt_uuid(path)
-            except IOError:
-                self._log.debug('rkt runtime read UUID: try %i/%i failed',
-                                i+1, self._TRIES)
-                time.sleep(self._DELAY)
-            else:
-                self._log.info('read rkt UUID at try %i/%i',
-                               i+1, self._TRIES)
-                return
-        raise runner.OperationFailed('failed to read rkt UUID')
-
     def _read_rkt_uuid(self, path):
-        data = self._read_file(path)
-        self._rkt_uuid = data.strip()
-        self._log.info('rkt container %s rkt_uuid %s',
-                       self._uuid, self._rkt_uuid)
+        try:
+            data = self._read_file(path)
+        except IOError:
+            raise NotYetReady('container not running')
+        else:
+            self._rkt_uuid = data.strip()
+            self._log.info('rkt container %s rkt_uuid %s',
+                           self._uuid, self._rkt_uuid)
 
-    def _collect_rkt_pid(self):
+    def _fetch_rkt_state(self):
         out = self._rkt_status(rkt_uuid=self._rkt_uuid)
         # TODO: find a better solution
         data = _parse_keyval(out.decode('utf-8'))
-
         if data['state'] != 'running':
-            raise runner.OperationFailed('container not running: %r',
-                                         data['state'])
+            raise NotYetReady('container not running')
+
         # the pid is still stored, so it is meaningful only if running
         self._pid = int(data['pid'])
+        self._log.info('rkt container %s rkt_uuid %s state %s',
+                       self._uuid, self._rkt_uuid, data['state'])
 
 
 def _parse_keyval(output):

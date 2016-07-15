@@ -21,7 +21,10 @@ from __future__ import absolute_import
 
 import collections
 import logging
+import time
 import uuid
+
+from six.moves import range
 
 from .. import command
 from .. import runner
@@ -40,6 +43,12 @@ class ConfigError(Exception):
     """
 
 
+class NotYetReady(Exception):
+    """
+    TODO
+    """
+
+
 _NULL = command.Path('false', paths=tuple())
 
 
@@ -50,6 +59,10 @@ class ContainerRuntime(object):
     NAME = ''
 
     _PATH = _NULL
+
+    _TRIES = 10  # TODO: make config item?
+
+    _DELAY = 1  # seconds  TODO: make config item?
 
     def __init__(self, conf, repo, rt_uuid=None):
         self._conf = conf
@@ -120,6 +133,21 @@ class ContainerRuntime(object):
         Shortcut for test purposes only. May be removed in future versions.
         """
         return self._run_conf
+
+    def _retry(self, what, func, *args, **kwargs):
+        ret = None
+        for i in range(self._TRIES):
+            try:
+                ret = func(*args, **kwargs)
+            except NotYetReady:
+                self._log.debug('%s: try %i/%i failed',
+                                what, i+1, self._TRIES)
+                time.sleep(self._DELAY)
+            else:
+                self._log.info('%s: done at try %i/%i',
+                               what, i+1, self._TRIES)
+                return ret
+        raise runner.OperationFailed('%s failed', what)
 
 
 class DomainParser(object):
