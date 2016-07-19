@@ -55,9 +55,8 @@ class RuntimeListTests(testlib.TestCase):
         VM_UUID = 'd7a0005e-ee05-4e61-9fbe-d2e93d59327c'
 
         def fake_check_output(*args):
-            return """
-convirt-%s.service                                                loaded active running   /bin/sleep 10m
-""" % VM_UUID
+            tmpl = testlib.read_test_data('systemctl_vdsm_service.txt')
+            return tmpl % VM_UUID
 
         with monkey.patch_scope([(subprocess, 'check_output',
                                   fake_check_output)]):
@@ -69,9 +68,7 @@ convirt-%s.service                                                loaded active 
             self.assertEqual(conts, [VM_UUID])
 
     def test__parse_systemctl_one_service(self):
-        output = """
-foobar.service                                                                                      loaded active running   /bin/sleep 10m
-"""
+        output = testlib.read_test_data('systemctl_foobar_service.txt')
         names = list(convirt.runner._parse_systemctl_list_units(output))
         self.assertEqual(names, ["foobar"])
 
@@ -88,18 +85,7 @@ foobar.service    somehow messed
         self.assertEqual(names, [])
 
     def test__parse_systemctl_no_services(self):
-        output = """
-proc-sys-fs-binfmt_misc.automount                                                                   loaded active waiting   Arbitrary Executable File Formats File System Automount Point
-sys-module-fuse.device                                                                              loaded active plugged   /sys/module/fuse
-sys-subsystem-net-devices-virbr0.device                                                             loaded active plugged   /sys/subsystem/net/devices/virbr0
-dev-hugepages.mount                                                                                 loaded active mounted   Huge Pages File System
-cups.path                                                                                           loaded active waiting   CUPS Scheduler
-session-1.scope                                                                                     loaded active running   Session 1 of user foobar
--.slice                                                                                             loaded active active    Root Slice
-cups.socket                                                                                         loaded active running   CUPS Scheduler
-swap.target                                                                                         loaded active active    Swap
-systemd-tmpfiles-clean.timer                                                                        loaded active waiting   Daily Cleanup of Temporary Directories
-"""
+        output = testlib.read_test_data('systemctl_list.txt')
         names = list(convirt.runner._parse_systemctl_list_units(output))
         self.assertEqual(names, [])
 

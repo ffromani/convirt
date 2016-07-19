@@ -226,49 +226,49 @@ class FakeRunner(object):
 
 
 def minimal_dom_xml(vm_uuid=None):
-    data = _read_dom_xml('minimal_dom.xml')
+    data = read_test_data('minimal_dom.xml')
     vm_uuid = str(uuid.uuid4()) if vm_uuid is None else vm_uuid
     return data.format(vm_uuid=vm_uuid)
 
 
 def full_dom_xml(vm_uuid=None):
-    data = _read_dom_xml('full_dom.xml')
+    data = read_test_data('full_dom.xml')
     vm_uuid = str(uuid.uuid4()) if vm_uuid is None else vm_uuid
     return data.format(vm_uuid=vm_uuid)
 
 
 def only_disk_dom_xml():
-    return _read_dom_xml('only_disk.xml')
+    return read_test_data('only_disk.xml')
 
 
 def only_mem_dom_xml():
-    return _read_dom_xml('only_mem.xml')
+    return read_test_data('only_mem.xml')
 
 
 def disk_dev_dom_xml():
-    return _read_dom_xml('disk_dev.xml')
+    return read_test_data('disk_dev.xml')
 
 
 def disk_file_malformed_dom_xml():
-    return _read_dom_xml('disk_file_malformed.xml')
+    return read_test_data('disk_file_malformed.xml')
 
 
 def bridge_down_dom_xml():
-    return _read_dom_xml('bridge_down.xml')
+    return read_test_data('bridge_down.xml')
 
 
 def bridge_no_source_dom_xml():
-    return _read_dom_xml('bridge_no_source.xml')
+    return read_test_data('bridge_no_source.xml')
 
 
 def metadata_drive_map_dom_xml():
-    return _read_dom_xml('metadata_drive_map.xml')
+    return read_test_data('metadata_drive_map.xml')
 
 
-def _read_dom_xml(name):
+def read_test_data(name):
     testdir = os.path.dirname(os.path.abspath(__file__))
-    tmpl = os.path.join(testdir, 'data', name)
-    with open(tmpl, 'rt') as src:
+    path = os.path.join(testdir, 'data', name)
+    with open(path, 'rt') as src:
         return src.read()
 
 
