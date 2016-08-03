@@ -26,10 +26,7 @@ from .. import runner
 from . import ContainerRuntime
 
 
-docker = command.Path('docker')
-
-
-command.executables['docker'] = docker
+command.executables['docker'] = command.Path('docker')
 
 
 _TEMPLATES = {
@@ -72,6 +69,7 @@ class Docker(ContainerRuntime):
 
     @staticmethod
     def available():
+        docker = command.executables['docker']
         return docker.available
 
     @classmethod

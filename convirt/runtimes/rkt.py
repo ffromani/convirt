@@ -31,10 +31,7 @@ from .. import runner
 from . import ContainerRuntime, NotYetReady
 
 
-rkt = command.Path('rkt')
-
-
-command.executables['rkt'] = rkt
+command.executables['rkt'] = command.Path('rkt')
 
 
 _TEMPLATES = {
@@ -73,6 +70,7 @@ class Rkt(ContainerRuntime):
 
     @staticmethod
     def available():
+        rkt = command.executables['rkt']
         return rkt.available
 
     def __init__(self, conf, repo,
