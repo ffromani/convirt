@@ -17,6 +17,10 @@
 #
 # Refer to the README and COPYING files for full details of the license
 #
+"""
+Interaction with system commands.
+"""
+
 from __future__ import absolute_import
 
 import collections
@@ -37,6 +41,13 @@ class Path(object):
         self._name = name
         self._paths = paths
         self._cmd = None
+
+    def __repr__(self):
+        return "%s: %s" % (
+            self.name,
+            'not found in %r' % self._paths
+            if self._cmd is None else self._cmd,
+        )
 
     @property
     def name(self):
