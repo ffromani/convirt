@@ -25,6 +25,12 @@ from .. import runner
 from . import ContainerRuntime
 
 
+def register():
+    return {
+        Fake.NAME: Fake
+    }
+
+
 class Fake(ContainerRuntime):
 
     _log = logging.getLogger('convirt.runtime.Fake')

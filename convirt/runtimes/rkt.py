@@ -52,6 +52,15 @@ _TEMPLATES = {
 }
 
 
+def register():
+    res = {}
+    if Rkt.available():
+        res = {
+            Rkt.NAME: Rkt
+        }
+    return res
+
+
 class Rkt(ContainerRuntime):
 
     NAME = 'rkt'
@@ -142,6 +151,7 @@ class Rkt(ContainerRuntime):
 
     def _fetch_rkt_state(self):
         out = self._rkt_status(rkt_uuid=self._rkt_uuid)
+
         # TODO: find a better solution
         data = _parse_keyval(out.decode('utf-8'))
         if data['state'] != 'running':

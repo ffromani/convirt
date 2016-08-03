@@ -36,6 +36,8 @@ import convirt.config.environ
 import convirt.metrics.cgroups
 import convirt.runtime
 import convirt.runtimes
+from convirt.runtimes import fake
+from convirt.runtimes import rkt
 
 from . import monkey
 
@@ -118,7 +120,7 @@ class RunnableTestCase(TestCase):
         self.guid = uuid.uuid4()
         self.run_dir = tempfile.mkdtemp()
         self.patch = monkey.Patch([
-            (convirt.runtimes.rkt.Network, 'DIR', self.run_dir),
+            (rkt.Network, 'DIR', self.run_dir),
             (convirt.command, 'executables', fake_executables()),
         ])
         self.patch.apply()
@@ -176,7 +178,7 @@ class FakeRunnableTestCase(TestCase):
 
     def setUp(self):
         def _fake_create(rt, conf, repo, **kwargs):
-            return convirt.runtimes.fake.Fake(
+            return fake.Fake(
                 conf,
                 repo,
                 **kwargs

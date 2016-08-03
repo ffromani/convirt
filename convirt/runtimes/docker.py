@@ -41,6 +41,15 @@ _TEMPLATES = {
 }
 
 
+def register():
+    res = {}
+    if Docker.available():
+        res = {
+            Docker.NAME: Docker
+        }
+    return res
+
+
 class Docker(ContainerRuntime):
 
     _log = logging.getLogger('convirt.runtime.Docker')

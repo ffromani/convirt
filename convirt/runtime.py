@@ -19,34 +19,36 @@
 #
 from __future__ import absolute_import
 
+import importlib
 import logging
+import pkgutil
 import threading
 
-from .runtimes import fake
-from .runtimes import docker
-from .runtimes import rkt
+from . import runtimes
 
 
 _lock = threading.Lock()
-_runtimes = {}
+_rts = {}
 _ready = False
 
 
 def _register():
-    global _runtimes
-    if not _runtimes:
-        runtimes = {fake.Fake.NAME: fake.Fake}
-        if docker.Docker.available():
-            runtimes[docker.Docker.NAME] = docker.Docker
-        if rkt.Rkt.available():
-            runtimes[rkt.Rkt.NAME] = rkt.Rkt
-        _runtimes = runtimes
-    return _runtimes
+    global _rts
+    if not _rts:
+        rts = {}
+        for _, module_name, _ in pkgutil.iter_modules([runtimes.__path__[0]]):
+            module = importlib.import_module(
+                '%s.%s' % (runtimes.__name__, module_name)
+            )
+            if hasattr(module, 'register'):
+                rts.update(module.register())
+        _rts = rts
+    return _rts
 
 
 def _unregister():
-    global _runtimes
-    _runtimes.clear()
+    global _rts
+    _rts.clear()
 
 
 class Unsupported(Exception):
@@ -64,10 +66,10 @@ _log = logging.getLogger('convirt.runtime')
 
 def create(rt, conf, repo, **kwargs):
     global _lock
-    global _runtimes
+    global _rts
 
     with _lock:
-        klass = _runtimes.get(rt, None)
+        klass = _rts.get(rt, None)
 
     if klass is None:
         raise Unsupported(rt)
@@ -79,22 +81,22 @@ def create(rt, conf, repo, **kwargs):
 # FIXME: testing (half-hack)
 def supported(register=True):
     global _lock
-    global _runtimes
+    global _rts
     with _lock:
         if register:
             _register()
-        return frozenset(list(_runtimes.keys()))
+        return frozenset(list(_rts.keys()))
 
 
 def setup():
     global _lock
     global _ready
-    global _runtimes
+    global _rts
     with _lock:
         if _ready:
             raise SetupError('setup already done')
         _register()
-        for name, rt in list(_runtimes.items()):
+        for name, rt in list(_rts.items()):
             _log.debug('setting up runtime %r', name)
             rt.setup_runtime()
         _ready = True
@@ -103,11 +105,11 @@ def setup():
 def teardown():
     global _lock
     global _ready
-    global _runtimes
+    global _rts
     with _lock:
         if not _ready:
             raise SetupError('teardown already done')
-        for name, rt in list(_runtimes.items()):
+        for name, rt in list(_rts.items()):
             _log.debug('shutting down runtime %r', name)
             rt.teardown_runtime()
         _unregister()
@@ -116,10 +118,10 @@ def teardown():
 
 def configure():
     global _lock
-    global _runtimes
+    global _rts
     with _lock:
         _register()
-        for name, rt in list(_runtimes.items()):
+        for name, rt in list(_rts.items()):
             _log.debug('configuring runtime %r', name)
             rt.configure_runtime()
 
@@ -127,7 +129,7 @@ def configure():
 # for test purposes
 def clear():
     global _ready
-    global _runtimes
+    global _rts
     with _lock:
         _unregister()
         _ready = False
