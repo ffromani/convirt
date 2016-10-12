@@ -1,0 +1,1 @@
+DOCKER_STORAGE_OPTS="--storage-opt dm.thinpooldev=/dev/mapper/centos7vg-docker--pool"
